@@ -1,0 +1,43 @@
+##### GitHub CI configuration #####
+##### See: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-nodejs #####
+
+name: Publishes TypeDoc documentation in GitHub Pages
+on:
+  push:
+    branches: [ main ]
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    name: Build documentation
+    steps:
+      - uses: actions/checkout@v6.0.2
+      - uses: actions/setup-node@v6.2.0
+        with:
+          node-version: 25.x
+          cache: "npm"
+      - run: npm ci
+      - run: npm run build --if-present
+      - run: npm run doc
+      - run: cp LICENSE ./public/LICENSE
+      - uses: actions/configure-pages@v5.0.0
+      - uses: actions/upload-pages-artifact@v4.0.0
+        with:
+          path: ./public
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    name: Deploy to GitHub Pages
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4.0.5

@@ -1,0 +1,27 @@
+{
+    "files": {
+        "includes": ["src/**", "*.json", "!package-lock.json"]
+    },
+    "formatter": {
+        "bracketSpacing": true,
+        "indentStyle": "space",
+        "indentWidth": 4,
+        "lineEnding": "lf"
+    },
+    "javascript": {
+        "formatter": {
+            "semicolons": "asNeeded"
+        }
+    },
+    "linter": {
+        "rules": {
+            "recommended": true,
+            "complexity": {
+                "useLiteralKeys": "off"
+            },
+            "style": {
+                "useBlockStatements": "error"
+            }
+        }
+    }
+}

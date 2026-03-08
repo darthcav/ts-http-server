@@ -1,0 +1,64 @@
+{
+    "name": "template-typescript",
+    "description": "A general-purpose TypeScript project template for Node.js >= 25",
+    "version": "0.1.0",
+    "author": {
+        "name": "darthcav"
+    },
+    "license": "Apache-2.0",
+    "private": true,
+    "type": "module",
+    "exports": {
+        ".": {
+            "types": "./dist/index.d.ts",
+            "default": "./dist/index.js"
+        }
+    },
+    "files": [
+        "package.json",
+        "README.md",
+        "LICENSE",
+        "src/**/*.ts",
+        "src/**/*.tsx",
+        "dist/**/*.js",
+        "dist/**/*.js.map",
+        "dist/**/*.d.ts",
+        "dist/**/*.d.ts.map"
+    ],
+    "dependencies": {
+        "@darthcav/ts-utils": "0.3.0",
+        "@logtape/logtape": "2.0.4"
+    },
+    "devDependencies": {
+        "@biomejs/biome": "2.4.6",
+        "@types/node": "25.3.5",
+        "asserttt": "1.0.1",
+        "shx": "0.4.0",
+        "typedoc": "0.28.17"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git@github.com:darthcav/template-typescript.git"
+    },
+    "engines": {
+        "node": ">=25"
+    },
+    "scripts": {
+        "\n===== Build =====": "",
+        "build": "npm run clean && tsc",
+        "prepare": "npm run build",
+        "clean": "shx rm -rf dist/*",
+        "\n===== Typecheck =====": "",
+        "typecheck": "tsc --noEmit",
+        "\n===== Start =====": "",
+        "start": "node --env-file=.env.local src/start.ts",
+        "\n===== Test =====": "",
+        "test": "node --env-file=.env.local --test --test-reporter=spec 'src/**/*.test.ts'",
+        "test:coverage": "node --env-file=.env.local --experimental-test-coverage --test 'src/**/*.test.ts'",
+        "\n===== Linter =====": "",
+        "lint": "biome check .",
+        "lint:fix": "biome check --write .",
+        "\n===== TypeDoc =====": "",
+        "doc": "shx rm -rf public/* && typedoc --tsconfig tsconfig.json"
+    }
+}

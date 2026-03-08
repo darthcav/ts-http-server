@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <title><%= pkg.name %> :: <%= header %></title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="/images/favicon.ico" type="image/x-icon" rel="shortcut icon">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"
+          type="text/css" rel="stylesheet" crossorigin="anonymous"
+          integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB">
+	<link href="/css/main.css" type="text/css" rel="stylesheet">
+</head>
+<body class="d-flex h-100">
+    <% const menu = [ { name : "index", title : "Home" } ]; %>
+    <div class="container-fluid d-flex w-100 h-100 p-0 m-0 flex-column">
+        <nav class="navbar navbar-expand-lg navbar-dark bg-primary m-0 p-3 fixed-top">
+            <span class="navbar-brand px-4 d-block"><%= pkg.name %></span>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarCollapse"
+                    aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="text-primary navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse justify-content-end" id="navbarCollapse">
+                <ul class="navbar-nav">
+                    <% for (let i = 0; i < menu.length; i++) { %>
+                        <% if (menu[i].name === menu_name) { %>
+                        <li class="nav-item active">
+                            <a class="nav-link" href="#"><%= menu[i].title %><span class="visually-hidden-focusable">(current)</span></a>
+                        </li>
+                        <% } else { %>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/<%= menu[i].name %>.html"><%= menu[i].title %></a>
+                        </li>
+                    <% } } %>
+                </ul>
+            </div>
+        </nav>
+        <main id="main" class="container mb-5" role="main">
+            <header role="banner" class="border border-info border-3 rounded p-3 mb-3">
+                <h1 class="display-3 text-info"><%= header %><br><%= pkg.name %></h1>
+            </header>

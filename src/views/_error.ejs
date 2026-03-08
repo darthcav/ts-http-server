@@ -1,0 +1,30 @@
+<%- include ("./include/header.ejs") -%>
+
+<table class="table table-striped">
+    <tr>
+        <th>
+            HTTP status
+        </th>
+        <td>
+            <%= status %>
+        </td>
+    </tr>
+    <tr>
+        <th>
+            Request path
+        </th>
+        <td>
+            <%= uri %>
+        </td>
+    </tr>
+    <tr>
+        <th>
+            Message
+        </th>
+        <td>
+            <%= message %>
+        </td>
+    </tr>
+</table>
+
+<%- include ("./include/footer.ejs") -%>

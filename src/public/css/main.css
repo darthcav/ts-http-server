@@ -1,0 +1,11 @@
+/* ===== import extra fonts ===== */
+@import url("https://fonts.googleapis.com/css?family=Roboto:100,100i,300,300i,400,400i,500,500i,700,700i,900,900i");
+
+/* ===== custom styles ===== */
+body {
+    padding-top: 6rem;
+    font-style: normal;
+    --bs-body-font-family: Roboto, sans-serif;
+    --bs-body-font-weight: 300;
+    --bs-body-font-size: 1.25rem;
+}

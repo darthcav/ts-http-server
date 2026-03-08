@@ -1,0 +1,30 @@
+<%- include ("./include/header.ejs") -%>
+
+<p><%= pkg.description %></p>
+
+<table class="table table-striped">
+    <tr>
+        <th>Software version</th>
+        <td><%= pkg.version %></td>
+    </tr>
+    <tr>
+        <th>Node binary</th>
+        <td><code><%= process.execPath %></code></td>
+    </tr>
+    <tr>
+        <th>Node version</th>
+        <td><code><%= process.version %></code></td>
+    </tr>
+    <tr>
+        <th>Working directory</th>
+        <td><code><%= process.cwd() %></code></td>
+    </tr>
+    <tr>
+        <th>Service process ID</th>
+        <td>
+            <code><%= process.pid %></code>
+        </td>
+    </tr>
+</table>
+
+<%- include ("./include/footer.ejs") -%>

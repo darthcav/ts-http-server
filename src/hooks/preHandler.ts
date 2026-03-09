@@ -17,7 +17,7 @@ import type { FastifyReply, FastifyRequest } from "fastify"
  */
 export default async function preHandler(
     request: FastifyRequest,
-    _reply: FastifyReply
+    _reply: FastifyReply,
 ): Promise<void> {
     request.log.debug(
         `Incoming request [${request.id}]: ${request.method} ${request.url} HTTP/${request.raw.httpVersion} from ${request.ip}`,

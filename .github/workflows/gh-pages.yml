@@ -24,7 +24,6 @@ jobs:
           node-version: 25.x
           cache: "npm"
       - run: npm ci
-      - run: npm run build
       - run: npm run doc
       - run: cp LICENSE ./public/LICENSE
       - uses: actions/configure-pages@v5.0.0

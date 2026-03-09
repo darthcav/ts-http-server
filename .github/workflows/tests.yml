@@ -37,7 +37,6 @@ jobs:
           node-version: ${{ matrix.node-version }}
           cache: "npm"
       - run: npm ci
-      - run: npm run build
       - run: cp .env.example .env.local
       - run: npm test
   coverage:
@@ -54,6 +53,5 @@ jobs:
           node-version: ${{ matrix.node-version }}
           cache: "npm"
       - run: npm ci
-      - run: npm run build
       - run: cp .env.example .env.local
       - run: npm run test:coverage

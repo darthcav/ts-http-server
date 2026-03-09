@@ -4,9 +4,9 @@ import type { FastifyServerOptions } from "fastify"
 import getConsoleFastifyLogger from "./getConsoleFastifyLogger.ts"
 
 /**
- * Returns base {@link FastifyServerOptions} used as defaults in {@link launcher}.
+ * Returns base `FastifyServerOptions` used as defaults in {@link launcher}.
  *
- * Uses {@link getConsoleFastifyLogger} as `loggerInstance` so that all Fastify
+ * Uses `getConsoleFastifyLogger` as `loggerInstance` so that all Fastify
  * internal logs are routed through LogTape under `logger.category`.
  * Built-in per-request logging is disabled in favor of the {@link preHandler}
  * and {@link onResponse} hooks, which emit structured access log lines.

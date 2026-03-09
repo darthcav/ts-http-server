@@ -1,0 +1,29 @@
+import { randomUUID } from "node:crypto"
+import type { Logger } from "@logtape/logtape"
+import type { FastifyServerOptions } from "fastify"
+import getConsoleFastifyLogger from "../loggers/getConsoleFastifyLogger.ts"
+
+/**
+ * Returns base {@link FastifyServerOptions} used as defaults in {@link launcher}.
+ *
+ * Uses {@link getConsoleFastifyLogger} as `loggerInstance` so that all Fastify
+ * internal logs are routed through LogTape under `logger.category`.
+ * Built-in per-request logging is disabled in favor of the {@link preHandler}
+ * and {@link onResponse} hooks, which emit structured access log lines.
+ *
+ * Generates request IDs via `crypto.randomUUID()` and enables proxy trust.
+ * Callers may override any field by spreading their own options on top.
+ *
+ * @param logger - The application LogTape logger; its category is used as the
+ *   base category for Fastify's own logger.
+ */
+export default function defaultFastifyOptions(
+    logger: Logger,
+): FastifyServerOptions {
+    return {
+        genReqId: () => randomUUID(),
+        trustProxy: true,
+        disableRequestLogging: true,
+        loggerInstance: getConsoleFastifyLogger([...logger.category]),
+    }
+}

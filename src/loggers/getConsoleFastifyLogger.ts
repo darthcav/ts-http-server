@@ -8,7 +8,7 @@ import {
  * Returns a {@link PinoLikeLogger} for Fastify scoped to the given category.
  *
  * Assumes LogTape has already been configured by the caller (e.g. via
- * {@link getConsoleLogger}). All records at or above `level` are forwarded
+ * `getConsoleLogger`). All records at or above `level` are forwarded
  * by Fastify to the active LogTape sinks.
  *
  * @param name - Logger category array passed to {@link getLogTapeFastifyLogger}

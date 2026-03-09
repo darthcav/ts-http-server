@@ -16,19 +16,17 @@ import type { FSTPlugin, LauncherLocals } from "../types.ts"
  * `@fastify/cors`, `@fastify/etag`, `@fastify/helmet`,
  * `@fastify/view` (EJS), and `@fastify/static`.
  *
- * @param locals - Application locals; `locals.pkg` is exposed as the
+ * @param opts.locals - Application locals; `locals.pkg` is exposed as the
  *   default context for every EJS view.
- * @param baseDir - Optional base directory for resolving the `src/` folder; defaults to `import.meta.dirname`.
+ * @param opts.baseDir - Optional base directory for resolving the `src/` folder; defaults to `import.meta.dirname`.
  * @returns A `Map` of plugin names to plugin entries, suitable for passing as
  *   the `plugins` field of `LauncherOptions`.
  */
-export default function defaultPlugins({
-    locals,
-    baseDir = null,
-}: {
+export default function defaultPlugins(opts: {
     locals: LauncherLocals
     baseDir?: string | null
 }): Map<string, FSTPlugin> {
+    const { locals, baseDir = null } = opts
     const plugins = new Map<string, FSTPlugin>()
     const srcDir = baseDir ? join(baseDir, "src") : import.meta.dirname
 

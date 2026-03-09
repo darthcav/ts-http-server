@@ -5,13 +5,13 @@ import {
 } from "@logtape/fastify"
 
 /**
- * Returns a {@link PinoLikeLogger} for Fastify scoped to the given category.
+ * Returns a `PinoLikeLogger` for Fastify scoped to the given category.
  *
  * Assumes LogTape has already been configured by the caller (e.g. via
  * `getConsoleLogger`). All records at or above `level` are forwarded
  * by Fastify to the active LogTape sinks.
  *
- * @param name - Logger category array passed to {@link getLogTapeFastifyLogger}
+ * @param name - Logger category array passed to `getLogTapeFastifyLogger`
  *   (e.g. `["my-app", "fastify"]`).
  * @param level - Minimum Pino log level to pass through. Defaults to `"info"`.
  * @returns A Pino-compatible logger backed by LogTape.

@@ -1,7 +1,7 @@
 {
-    "name": "template-typescript",
-    "description": "A general-purpose TypeScript project template for Node.js >= 25",
-    "version": "0.1.0",
+    "name": "ts-http-server",
+    "description": "A TypeScript HTTP server for Node.js >= 25",
+    "version": "0.0.1",
     "author": {
         "name": "darthcav"
     },
@@ -27,31 +27,41 @@
     ],
     "dependencies": {
         "@darthcav/ts-utils": "0.3.0",
-        "@logtape/logtape": "2.0.4"
+        "@fastify/accepts": "5.0.4",
+        "@fastify/compress": "8.3.1",
+        "@fastify/cors": "11.2.0",
+        "@fastify/etag": "6.1.0",
+        "@fastify/helmet": "13.0.2",
+        "@fastify/static": "9.0.0",
+        "@fastify/view": "11.1.1",
+        "@hapi/boom": "10.0.1",
+        "@logtape/fastify": "2.0.4",
+        "@logtape/logtape": "2.0.4",
+        "ejs": "5.0.1",
+        "fastify": "5.8.2"
     },
     "devDependencies": {
         "@biomejs/biome": "2.4.6",
-        "@types/node": "25.3.5",
+        "@types/ejs": "3.1.5",
+        "@types/node": "25.4.0",
         "asserttt": "1.0.1",
         "shx": "0.4.0",
         "typedoc": "0.28.17"
     },
     "repository": {
         "type": "git",
-        "url": "git@github.com:darthcav/template-typescript.git"
+        "url": "git@github.com:darthcav/ts-http-server.git"
     },
     "engines": {
         "node": ">=25"
     },
     "scripts": {
         "\n===== Build =====": "",
+        "clean": "shx rm -rf dist/*",
         "build": "npm run clean && tsc",
         "prepare": "npm run build",
-        "clean": "shx rm -rf dist/*",
         "\n===== Typecheck =====": "",
         "typecheck": "tsc --noEmit",
-        "\n===== Start =====": "",
-        "start": "node --env-file=.env.local src/start.ts",
         "\n===== Test =====": "",
         "test": "node --env-file=.env.local --test --test-reporter=spec 'src/**/*.test.ts'",
         "test:coverage": "node --env-file=.env.local --experimental-test-coverage --test 'src/**/*.test.ts'",
@@ -59,6 +69,8 @@
         "lint": "biome check .",
         "lint:fix": "biome check --write .",
         "\n===== TypeDoc =====": "",
-        "doc": "shx rm -rf public/* && typedoc --tsconfig tsconfig.json"
+        "doc": "shx rm -rf public/* && typedoc --tsconfig tsconfig.json",
+        "\n===== Start =====": "",
+        "start": "node --env-file=.env.local src/start.ts"
     }
 }

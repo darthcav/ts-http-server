@@ -1,7 +1,7 @@
 # IDE and AI code assistant directories
-.claude/
-.idea/
-.vscode/
+/.claude
+/.idea
+/.vscode
 
 # Environment variable files
 .env
@@ -9,16 +9,16 @@
 !.env.example
 
 # Dependency directories
-node_modules/
+/node_modules
 
 # Build output
-dist/
+/dist
 
 # Doc output
-public/
+/public
 
 # Test coverage
-coverage/
+/coverage
 
 # Logs
 *.log

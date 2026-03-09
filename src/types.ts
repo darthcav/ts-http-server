@@ -1,0 +1,49 @@
+import type { Logger } from "@logtape/logtape"
+import type {
+    FastifyPluginAsync,
+    FastifyPluginCallback,
+    FastifyPluginOptions,
+    FastifyServerOptions,
+    RouteOptions,
+} from "fastify"
+
+/**
+ * A plugin entry combining a Fastify plugin function with its options,
+ * stored in the plugins `Map` passed to {@link launcher}.
+ */
+export type FSTPlugin = {
+    // biome-ignore lint/suspicious/noExplicitAny: third-party plugins use varied option types
+    plugin: FastifyPluginCallback<any> | FastifyPluginAsync<any>
+    opts?: FastifyPluginOptions
+}
+
+/**
+ * Application locals decorated onto the Fastify instance and available
+ * throughout the request lifecycle.
+ */
+export type LauncherLocals = {
+    pkg?: object
+    host?: string
+    port?: number
+    [key: string]: unknown
+}
+
+/**
+ * Options passed to the {@link launcher} function.
+ */
+export type LauncherOptions = {
+    /** Logger instance used for error and info output. */
+    logger: Logger
+    /** Application locals decorated onto the Fastify instance. */
+    locals: LauncherLocals
+    /** Map of named plugins to register. */
+    plugins: Map<string, FSTPlugin>
+    /** Map of named routes to register. */
+    routes: Map<string, RouteOptions>
+    /** Map of named decorators to add to the Fastify instance. */
+    decorators?: Map<string, unknown>
+    /** Optional Fastify server options (merged over {@link defaultFastifyOptions}). */
+    opts?: FastifyServerOptions
+    /** Optional callback invoked once the server is listening. */
+    done?: () => void
+}

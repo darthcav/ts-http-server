@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto"
 import type { Logger } from "@logtape/logtape"
 import type { FastifyServerOptions } from "fastify"
-import getConsoleFastifyLogger from "../loggers/getConsoleFastifyLogger.ts"
+import getConsoleFastifyLogger from "./getConsoleFastifyLogger.ts"
 
 /**
  * Returns base {@link FastifyServerOptions} used as defaults in {@link launcher}.

@@ -1,6 +1,13 @@
 import { getConsoleLogger, main } from "@darthcav/ts-utils"
 import pkg from "../package.json" with { type: "json" }
-import { launcher } from "./index.ts"
+import { defaultPlugins, defaultRoutes, launcher } from "./index.ts"
 
-const logger = await getConsoleLogger(pkg.name)
-main(pkg.name, logger, launcher)
+const logger = await getConsoleLogger(pkg.name, "debug")
+
+main(pkg.name, logger, (logger) => {
+    const locals = { pkg }
+    const plugins = defaultPlugins({ locals })
+    const routes = defaultRoutes()
+
+    launcher({ logger, locals, plugins, routes })
+})

@@ -22,7 +22,13 @@ export default async function onResponse(
     const contentLength = reply.getHeader("content-length")
     const size = contentLength != null ? Number(contentLength) : "-"
 
-    reply.log.info(
-        `${request.ip} -- ${request.method} ${request.url} HTTP/${request.raw.httpVersion} ${reply.statusCode} ${size} ${Math.round(reply.elapsedTime)}ms "${request.headers["referer"] ?? "-"}" "${request.headers["user-agent"] ?? "-"}"`,
-    )
+    if (reply.statusCode < 400) {
+        reply.log.info(
+            `${request.ip} -- ${request.method} ${request.url} HTTP/${request.raw.httpVersion} ${reply.statusCode} ${size} ${Math.round(reply.elapsedTime)}ms "${request.headers["referer"] ?? "-"}" "${request.headers["user-agent"] ?? "-"}"`,
+        )
+    } else {
+        reply.log.error(
+            `${request.ip} -- ${request.method} ${request.url} HTTP/${request.raw.httpVersion} ${reply.statusCode} ${size} ${Math.round(reply.elapsedTime)}ms "${request.headers["referer"] ?? "-"}" "${request.headers["user-agent"] ?? "-"}"`,
+        )
+    }
 }

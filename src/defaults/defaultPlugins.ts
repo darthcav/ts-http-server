@@ -18,7 +18,7 @@ import type { FSTPlugin, LauncherLocals } from "../types.ts"
  *
  * @param opts.locals - Application locals; `locals.pkg` is exposed as the
  *   default context for every EJS view.
- * @param opts.baseDir - Optional base directory for resolving the `src/` folder; defaults to `import.meta.dirname`.
+ * @param opts.baseDir - Optional base directory for resolving the `src/` folder; defaults to the parent of `import.meta.dirname`.
  * @returns A `Map` of plugin names to plugin entries, suitable for passing as
  *   the `plugins` field of `LauncherOptions`.
  */
@@ -28,7 +28,9 @@ export default function defaultPlugins(opts: {
 }): Map<string, FSTPlugin> {
     const { locals, baseDir = null } = opts
     const plugins = new Map<string, FSTPlugin>()
-    const srcDir = baseDir ? join(baseDir, "src") : import.meta.dirname
+    const srcDir = baseDir
+        ? join(baseDir, "src")
+        : join(import.meta.dirname, "..")
 
     plugins.set("@fastify/accepts", {
         plugin: FastifyAccepts,

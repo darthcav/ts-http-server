@@ -24,47 +24,46 @@ export default async function defaultErrorHandler(
         const payload = boom.output.payload
         payload.message = boom.message
 
-        void reply.status(payload.statusCode)
+        reply.status(payload.statusCode)
 
         switch (accept.type(["html", "json"])) {
             case "html":
-                void reply.type("text/html").view("_error", {
+                return reply.type("text/html").view("_error", {
                     menu_name: "",
                     header: `HTTP error ${payload.statusCode} (${payload.message})`,
                     uri: request.url,
                     status: payload.statusCode,
                     message: payload.message,
                 })
-                return
             case "json":
-                void reply.type("application/json").send(payload)
-                return
+                return reply.type("application/json").send(payload)
             default:
-                void reply
+                return reply
                     .type("text/plain")
                     .send(`${payload.error} :: ${payload.message}`)
-                return
         }
-    }
+    } else {
+        if (
+            !reply.statusCode ||
+            reply.statusCode < 400 ||
+            reply.statusCode > 599
+        ) {
+            reply.status(500)
+        }
 
-    if (!reply.statusCode || reply.statusCode < 400 || reply.statusCode > 599) {
-        void reply.status(500)
-    }
-
-    switch (accept.type(["html", "json"])) {
-        case "html":
-            void reply.type("text/html").view("_error", {
-                menu_name: "",
-                header: `HTTP error ${reply.statusCode} (${error.message})`,
-                uri: request.url,
-                status: reply.statusCode,
-                message: error.message,
-            })
-            return
-        case "json":
-            void reply.type("application/json").send(error)
-            return
-        default:
-            void reply.type("text/plain").send(JSON.stringify(error))
+        switch (accept.type(["html", "json"])) {
+            case "html":
+                return reply.type("text/html").view("_error", {
+                    menu_name: "",
+                    header: `HTTP error ${reply.statusCode} (${error.message})`,
+                    uri: request.url,
+                    status: reply.statusCode,
+                    message: error.message,
+                })
+            case "json":
+                return reply.type("application/json").send(error)
+            default:
+                return reply.type("text/plain").send(JSON.stringify(error))
+        }
     }
 }

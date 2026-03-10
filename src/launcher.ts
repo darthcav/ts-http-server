@@ -1,9 +1,8 @@
-import type { Server } from "node:net"
-import { env, exit } from "node:process"
-import Fastify from "fastify"
+import process, { env } from "node:process"
+import { notFound } from "@hapi/boom"
+import Fastify, { type FastifyInstance } from "fastify"
+import defaultErrorHandler from "./defaults/defaultErrorHandler.ts"
 import defaultFastifyOptions from "./defaults/defaultFastifyOptions.ts"
-import defaultErrorHandler from "./handlers/defaultErrorHandler.ts"
-import defaultNotFoundHandler from "./handlers/defaultNotFoundHandler.ts"
 import { onResponse, preHandler } from "./index.ts"
 import type { LauncherOptions } from "./types.ts"
 
@@ -14,11 +13,11 @@ import type { LauncherOptions } from "./types.ts"
  * 1. Creates a `FastifyInstance` merging {@link defaultFastifyOptions} with `opts`.
  * 2. Decorates the instance with `locals` and any extra `decorators`.
  * 3. Registers all `plugins` and `routes`.
- * 4. Sets {@link defaultNotFoundHandler} and {@link defaultErrorHandler}.
+ * 4. Sets a `notFound` handler (throws Boom 404) and {@link defaultErrorHandler}.
  * 5. Registers {@link preHandler} and {@link onResponse} hooks.
  * 6. Calls `fastify.listen()` and invokes the optional `done` callback.
  *
- * @returns The underlying `net.Server` (e.g. for use with `server.close()`).
+ * @returns The `FastifyInstance` (e.g. for use with `fastify.close()`).
  */
 export default function launcher({
     logger,
@@ -28,7 +27,7 @@ export default function launcher({
     decorators,
     opts,
     done,
-}: LauncherOptions): Server {
+}: LauncherOptions): FastifyInstance {
     const host = locals?.host ?? "localhost"
     const port = locals?.port ?? Number(env["CONTAINER_EXPOSE_PORT"] ?? 8888)
 
@@ -53,7 +52,9 @@ export default function launcher({
         fastify.route(value)
     }
 
-    fastify.setNotFoundHandler(defaultNotFoundHandler)
+    fastify.setNotFoundHandler(async (_request, _reply) => {
+        throw notFound()
+    })
 
     fastify.setErrorHandler(defaultErrorHandler)
 
@@ -63,13 +64,11 @@ export default function launcher({
 
     fastify.listen({ host, port }, (error) => {
         if (error) {
-            logger.error(
-                `${error.message} [${(error as NodeJS.ErrnoException).code ?? ""}]`,
-            )
-            exit(1)
+            logger.error(`${error.message}`)
+            process.exit(1)
         }
         done?.()
     })
 
-    return fastify.server
+    return fastify
 }

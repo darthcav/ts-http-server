@@ -6,8 +6,10 @@
         "name": "darthcav"
     },
     "license": "Apache-2.0",
-    "private": true,
     "type": "module",
+    "publishConfig": {
+        "access": "public"
+    },
     "exports": {
         ".": {
             "types": "./dist/index.d.ts",
@@ -26,7 +28,7 @@
         "dist/**/*.d.ts.map"
     ],
     "dependencies": {
-        "@darthcav/ts-utils": "0.3.0",
+        "@darthcav/ts-utils": "0.8.0",
         "@fastify/accepts": "5.0.4",
         "@fastify/compress": "8.3.1",
         "@fastify/cors": "11.2.0",

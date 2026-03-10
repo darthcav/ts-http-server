@@ -68,7 +68,7 @@ const routes = new Map<string, RouteOptions>([
 describe("launcher [HTTP]", () => {
     const port = 19001
     const base = `http://localhost:${port}`
-    let server: import("node:net").Server
+    let server: import("fastify").FastifyInstance
 
     before(async () => {
         server = launcher({
@@ -83,7 +83,7 @@ describe("launcher [HTTP]", () => {
 
     after(async () => {
         await setTimeout(200)
-        server.close()
+        await server.close()
     })
 
     it("GET / → 200 JSON", async () => {

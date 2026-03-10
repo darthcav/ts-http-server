@@ -12,8 +12,10 @@ import type {
  * stored in the plugins `Map` passed to {@link launcher}.
  */
 export type FSTPlugin = {
+    /** The Fastify plugin function to register. */
     // biome-ignore lint/suspicious/noExplicitAny: third-party plugins use varied option types
     plugin: FastifyPluginCallback<any> | FastifyPluginAsync<any>
+    /** Optional options forwarded to the plugin on registration. */
     opts?: FastifyPluginOptions
 }
 
@@ -22,9 +24,13 @@ export type FSTPlugin = {
  * throughout the request lifecycle.
  */
 export type LauncherLocals = {
+    /** Package metadata (e.g. contents of `package.json`). */
     pkg?: object
+    /** Hostname the server will bind to. */
     host?: string
+    /** Port the server will listen on. */
     port?: number
+    /** Any additional application-specific locals. */
     [key: string]: unknown
 }
 

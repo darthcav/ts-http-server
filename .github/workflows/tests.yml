@@ -17,7 +17,7 @@ jobs:
     name: Linting with Node.js ${{ matrix.node-version }}
     steps:
       - uses: actions/checkout@v6.0.2
-      - uses: actions/setup-node@v6.2.0
+      - uses: actions/setup-node@v6.3.0
         with:
           node-version: ${{ matrix.node-version }}
           cache: npm
@@ -32,7 +32,7 @@ jobs:
     name: Testing with Node.js ${{ matrix.node-version }}
     steps:
       - uses: actions/checkout@v6.0.2
-      - uses: actions/setup-node@v6.2.0
+      - uses: actions/setup-node@v6.3.0
         with:
           node-version: ${{ matrix.node-version }}
           cache: "npm"
@@ -49,7 +49,7 @@ jobs:
     name: Coverage with Node.js ${{ matrix.node-version }}
     steps:
       - uses: actions/checkout@v6.0.2
-      - uses: actions/setup-node@v6.2.0
+      - uses: actions/setup-node@v6.3.0
         with:
           node-version: ${{ matrix.node-version }}
           cache: "npm"

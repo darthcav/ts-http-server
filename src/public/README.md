@@ -1,3 +1,3 @@
 # Public directory
 
-Placeholder directory for static files.
+Static files served by `@fastify/static`: `css/` and `images/`.

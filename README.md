@@ -112,7 +112,7 @@ public/             # Documentation output (generated)
 [Apache-2.0](LICENSE)
 
 [node-version]: https://img.shields.io/badge/node-%3E%3D25-orange.svg?style=flat-square
-[version-image]: https://img.shields.io/badge/version-0.0.1-blue.svg?style=flat-square
+[version-image]: https://img.shields.io/badge/version-0.1.0-blue.svg?style=flat-square
 [ci-badge]: https://github.com/darthcav/ts-http-server/actions/workflows/tests.yml/badge.svg
 [coverage-badge]: https://img.shields.io/badge/coverage-check%20CI-yellow.svg?style=flat-square
 [pages-url]: https://darthcav.github.io/ts-http-server/

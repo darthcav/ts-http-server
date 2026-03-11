@@ -12,7 +12,7 @@ import type { FastifyReply, FastifyRequest } from "fastify"
  * fastify.addHook("preHandler", preHandler)
  * ```
  *
- * Uses `request.log.info` so each log record is automatically correlated with
+ * Uses `request.log.debug` so each log record is automatically correlated with
  * the request ID assigned by Fastify.
  */
 export default async function preHandler(

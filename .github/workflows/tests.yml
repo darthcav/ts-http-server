@@ -4,7 +4,7 @@
 name: Lint and test Typescript Node.js app in CI
 on:
   push:
-    branches: [ main ]
+    branches: [ dev ]
   pull_request:
 
 jobs:
@@ -12,8 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version:
-          - 25.x
+        node-version: [ 25.x ]
     name: Linting with Node.js ${{ matrix.node-version }}
     steps:
       - uses: actions/checkout@v6.0.2
@@ -27,8 +26,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version:
-          - 25.x
+        node-version: [ 25.x ]
     name: Testing with Node.js ${{ matrix.node-version }}
     steps:
       - uses: actions/checkout@v6.0.2
@@ -44,8 +42,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version:
-          - 25.x
+        node-version: [ 25.x ]
     name: Coverage with Node.js ${{ matrix.node-version }}
     steps:
       - uses: actions/checkout@v6.0.2

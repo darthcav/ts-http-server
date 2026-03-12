@@ -3,7 +3,7 @@ import { after, before, suite, test } from "node:test"
 import { setTimeout } from "node:timers/promises"
 import FastifyAccepts from "@fastify/accepts"
 import type { Logger } from "@logtape/logtape"
-import type { RouteOptions } from "fastify"
+import type { FastifyInstance, RouteOptions } from "fastify"
 import launcher from "../launcher.ts"
 import type { FSTPlugin } from "../types.ts"
 
@@ -44,7 +44,7 @@ suite("launcher [HTTP] with decorators and done callback", () => {
 
     const port = 19003
     const base = `http://localhost:${port}`
-    let server: import("fastify").FastifyInstance
+    let server: FastifyInstance
     let doneWasCalled = false
 
     before(async () => {
@@ -73,8 +73,8 @@ suite("launcher [HTTP] with decorators and done callback", () => {
 
     test("GET / → 200 JSON with decorators registered", async () => {
         const res = await fetch(`${base}/`)
-        equal(res.status, 200)
         const body = (await res.json()) as { ok: boolean }
+        equal(res.status, 200)
         equal(body.ok, true)
     })
 })

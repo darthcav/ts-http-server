@@ -1,5 +1,5 @@
 import { equal, ok } from "node:assert/strict"
-import { after, before, describe, it } from "node:test"
+import { after, before, suite, test } from "node:test"
 import { setTimeout } from "node:timers/promises"
 import FastifyAccepts from "@fastify/accepts"
 import type { Logger } from "@logtape/logtape"
@@ -65,7 +65,7 @@ const routes = new Map<string, RouteOptions>([
 // HTTP server suite
 // ---------------------------------------------------------------------------
 
-describe("launcher [HTTP]", () => {
+suite("launcher [HTTP]", () => {
     const port = 19001
     const base = `http://localhost:${port}`
     let server: import("fastify").FastifyInstance
@@ -86,20 +86,20 @@ describe("launcher [HTTP]", () => {
         await server.close()
     })
 
-    it("GET / → 200 JSON", async () => {
+    test("GET / → 200 JSON", async () => {
         const res = await fetch(`${base}/`)
         equal(res.status, 200)
         const body = (await res.json()) as { ok: boolean }
         equal(body.ok, true)
     })
 
-    it("POST / → 405", async () => {
+    test("POST / → 405", async () => {
         const res = await fetch(`${base}/`, { method: "POST" })
         equal(res.status, 405)
         equal(res.headers.get("allow"), "GET, HEAD")
     })
 
-    it("GET /missing → 404 JSON", async () => {
+    test("GET /missing → 404 JSON", async () => {
         const res = await fetch(`${base}/missing`, {
             headers: { accept: "application/json" },
         })
@@ -113,21 +113,21 @@ describe("launcher [HTTP]", () => {
         equal(body.statusCode, 404)
     })
 
-    it("GET /missing → 404 plain text", async () => {
+    test("GET /missing → 404 plain text", async () => {
         const res = await fetch(`${base}/missing`, {
             headers: { accept: "text/plain" },
         })
         equal(res.status, 404)
     })
 
-    it("GET /error → 500 JSON", async () => {
+    test("GET /error → 500 JSON", async () => {
         const res = await fetch(`${base}/error`, {
             headers: { accept: "application/json" },
         })
         equal(res.status, 500)
     })
 
-    it("GET /error → 500 plain text", async () => {
+    test("GET /error → 500 plain text", async () => {
         const res = await fetch(`${base}/error`, {
             headers: { accept: "text/plain" },
         })

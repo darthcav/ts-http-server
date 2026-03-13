@@ -4,7 +4,7 @@ import type { FastifyReply, FastifyRequest } from "fastify"
  * Fastify `preHandler` hook that logs incoming request details:
  *
  * ```
- * Incoming request: {method} {url} HTTP/{httpVersion} from {ip}
+ * Incoming request [{id}]: {method} {url} HTTP/{httpVersion} from {ip}
  * ```
  *
  * Intended to be registered via:

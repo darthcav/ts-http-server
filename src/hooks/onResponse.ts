@@ -12,8 +12,8 @@ import type { FastifyReply, FastifyRequest } from "fastify"
  * fastify.addHook("onResponse", onResponse)
  * ```
  *
- * Uses `reply.log.info` so each log record is automatically correlated with
- * the request ID assigned by Fastify.
+ * Uses `reply.log.info` for 2xx/3xx and `reply.log.error` for 4xx/5xx,
+ * so each log record is automatically correlated with the request ID assigned by Fastify.
  */
 export default async function onResponse(
     request: FastifyRequest,

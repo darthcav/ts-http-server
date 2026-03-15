@@ -28,7 +28,7 @@
         "dist/**/*.d.ts.map"
     ],
     "dependencies": {
-        "@darthcav/ts-utils": "0.8.0",
+        "@darthcav/ts-utils": "0.8.2",
         "@fastify/accepts": "5.0.4",
         "@fastify/compress": "8.3.1",
         "@fastify/cors": "11.2.0",

@@ -1,9 +1,10 @@
 {
     "name": "@darthcav/ts-http-server",
     "description": "A TypeScript HTTP server for Node.js >= 25",
-    "version": "0.2.0",
+    "version": "0.3.0",
     "author": {
-        "name": "darthcav"
+        "name": "darthcav",
+        "url": "https://github.com/darthcav"
     },
     "license": "Apache-2.0",
     "type": "module",
@@ -17,15 +18,10 @@
         }
     },
     "files": [
-        "package.json",
-        "README.md",
-        "LICENSE",
-        "src/**/*.ts",
-        "src/**/*.tsx",
-        "dist/**/*.js",
-        "dist/**/*.js.map",
-        "dist/**/*.d.ts",
-        "dist/**/*.d.ts.map"
+        "src",
+        "!src/**/*.test.ts",
+        "!src/__tests__",
+        "dist"
     ],
     "dependencies": {
         "@darthcav/ts-utils": "0.8.2",
@@ -64,15 +60,16 @@
         "prepare": "npm run build",
         "\n===== Typecheck =====": "",
         "typecheck": "tsc --noEmit",
+        "\n===== Start =====": "",
+        "start": "node --env-file=.env.local src/start.ts",
         "\n===== Test =====": "",
         "test": "node --env-file=.env.local --test --test-reporter=spec 'src/**/*.test.ts'",
         "test:coverage": "node --env-file=.env.local --experimental-test-coverage --test 'src/**/*.test.ts'",
+        "test:coverage:lcov": "shx mkdir -p coverage && node --env-file=.env.local --experimental-test-coverage --test-reporter=lcov --test-reporter-destination=coverage/lcov.info --test-reporter=spec --test-reporter-destination=stdout --test 'src/**/*.test.ts'",
         "\n===== Linter =====": "",
         "lint": "biome check .",
         "lint:fix": "biome check --write .",
         "\n===== TypeDoc =====": "",
-        "doc": "shx rm -rf public/* && typedoc --tsconfig tsconfig.json",
-        "\n===== Start =====": "",
-        "start": "node --env-file=.env.local src/start.ts"
+        "doc": "shx rm -rf public/* && typedoc --tsconfig tsconfig.json"
     }
 }

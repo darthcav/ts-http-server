@@ -1,6 +1,6 @@
 # @darthcav/ts-http-server
 
-![Node][node-version] ![Version][version-image] ![CI][ci-badge] ![Coverage][coverage-badge]
+[![Node][node-version]][node-url] ![Version][version-image] ![CI][ci-badge] [![Coverage][coverage-badge]][coverage-url]
 
 A TypeScript wrapper HTTP server for Node.js >= 25 based upon [Fastify](https://fastify.dev/).
 
@@ -112,7 +112,9 @@ public/             # Documentation output (generated)
 [Apache-2.0](LICENSE)
 
 [node-version]: https://img.shields.io/badge/node-%3E%3D25-orange.svg?style=flat-square
-[version-image]: https://img.shields.io/badge/version-0.2.0-blue.svg?style=flat-square
+[node-url]: https://nodejs.org
+[version-image]: https://img.shields.io/badge/version-0.3.0-blue.svg?style=flat-square
 [ci-badge]: https://github.com/darthcav/ts-http-server/actions/workflows/tests.yml/badge.svg
-[coverage-badge]: https://img.shields.io/badge/coverage-check%20CI-yellow.svg?style=flat-square
+[coverage-badge]: https://codecov.io/github/darthcav/ts-http-server/branch/dev/graph/badge.svgK8Q4T4N9SG
+[coverage-url]: https://codecov.io/github/darthcav/ts-http-server
 [pages-url]: https://darthcav.github.io/ts-http-server/

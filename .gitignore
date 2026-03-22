@@ -1,7 +1,9 @@
-# IDE and AI code assistant directories
-/.claude
+# IDEs
 /.idea
 /.vscode
+
+# AI Assistants
+/.claude
 
 # Environment variable files
 .env

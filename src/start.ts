@@ -5,7 +5,7 @@ import { defaultPlugins, defaultRoutes, launcher } from "./index.ts"
 
 const logger = await getConsoleLogger(pkg.name, "info")
 
-main(pkg.name, logger, false, () => {
+main(pkg.name, logger, () => {
     const locals = { pkg }
     const plugins = defaultPlugins({ locals })
     const routes = defaultRoutes()

@@ -23,6 +23,6 @@ export {
     defaultPlugins,
     defaultRoutes,
     launcher,
-    preHandler,
     onResponse,
+    preHandler,
 }

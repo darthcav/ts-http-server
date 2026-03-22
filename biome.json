@@ -21,6 +21,9 @@
             },
             "style": {
                 "useBlockStatements": "error"
+            },
+            "nursery": {
+                "useImportsFirst": "error"
             }
         }
     }

@@ -1,7 +1,7 @@
 ##### GitHub CI configuration #####
 ##### See: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-nodejs #####
 
-name: Lint and test Typescript Node.js app in CI
+name: lint/test/coverage CI
 on:
   push:
     branches: [ dev ]
@@ -15,8 +15,8 @@ jobs:
         node-version: [ 25.x ]
     name: Linting with Node.js ${{ matrix.node-version }}
     steps:
-      - uses: actions/checkout@v6.0.2
-      - uses: actions/setup-node@v6.3.0
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
         with:
           node-version: ${{ matrix.node-version }}
           cache: npm
@@ -29,8 +29,8 @@ jobs:
         node-version: [ 25.x ]
     name: Testing with Node.js ${{ matrix.node-version }}
     steps:
-      - uses: actions/checkout@v6.0.2
-      - uses: actions/setup-node@v6.3.0
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
         with:
           node-version: ${{ matrix.node-version }}
           cache: "npm"
@@ -45,12 +45,16 @@ jobs:
         node-version: [ 25.x ]
     name: Coverage with Node.js ${{ matrix.node-version }}
     steps:
-      - uses: actions/checkout@v6.0.2
-      - uses: actions/setup-node@v6.3.0
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
         with:
           node-version: ${{ matrix.node-version }}
           cache: "npm"
       - run: npm ci
       - run: npm run build --if-present
       - run: cp .env.example .env.local
-      - run: npm run test:coverage
+      - run: npm run test:coverage:lcov
+      - uses: codecov/codecov-action@v5
+        with:
+          files: ./coverage/lcov.info
+          token: ${{ secrets.CODECOV_TOKEN }}

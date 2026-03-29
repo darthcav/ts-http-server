@@ -16,9 +16,8 @@ ARG CONTAINER_EXPOSE_PORT=8888
 ENV CONTAINER_EXPOSE_PORT=${CONTAINER_EXPOSE_PORT}
 WORKDIR /app
 COPY --from=build /app/ ./
-COPY .env.example .env.local
 RUN chown -R ${APP_USER}:${APP_GROUP} /app
 USER ${APP_USER}
 EXPOSE ${CONTAINER_EXPOSE_PORT}
 
-CMD ["npm", "run", "start"]
+ENTRYPOINT [ "node src/start.ts" ]

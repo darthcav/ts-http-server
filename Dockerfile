@@ -6,7 +6,7 @@ FROM ${BUILD_IMAGE} AS build
 WORKDIR /app
 COPY package.json package-lock.json tsconfig.json README.md LICENSE .env.example ./
 COPY src ./src/
-RUN npm ci --omit=dev --no-audit --no-fund
+RUN npm ci --no-audit --no-fund
 
 ##### Runtime #####
 FROM ${BUILD_IMAGE}

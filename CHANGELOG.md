@@ -13,7 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `Dockerfile`: base image configurable via `BUILD_IMAGE` build arg (default `node:25-alpine`)
 - `Dockerfile`: runtime user/group configurable via `APP_USER` / `APP_GROUP` build args (default `node:node`); use `user:` in docker-compose to override at runtime
 - `Dockerfile`: exposed port configurable via `CONTAINER_EXPOSE_PORT` build arg, also set as a runtime `ENV` (default `8888`)
-- `Dockerfile`: `npm ci` now runs with `--no-audit --no-fund`
+- `Dockerfile`: `build` stage runs `npm ci --no-audit --no-fund` (all dependencies, so the `prepare` lifecycle hook compiles TypeScript via `tsc`)
 
 ### Dependencies
 

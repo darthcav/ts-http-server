@@ -117,12 +117,12 @@ docker build -t ts-http-server .
 
 Available build arguments:
 
-| Argument               | Default         | Description                          |
-|------------------------|-----------------|--------------------------------------|
-| `BUILD_IMAGE`          | `node:25-alpine`| Base image for both stages           |
+| Argument               | Default         | Description                                   |
+|------------------------|-----------------|-----------------------------------------------|
+| `BUILD_IMAGE`          | `node:25-alpine`| Base image for both stages                    |
 | `APP_USER`             | `node`          | OS user owning `/app` and running the process |
-| `APP_GROUP`            | `node`          | OS group owning `/app`               |
-| `CONTAINER_EXPOSE_PORT`| `8888`          | Port exposed by the container (also set as `ENV`) |
+| `APP_GROUP`            | `node`          | OS group owning `/app`                        |
+| `CONTAINER_EXPOSE_PORT`| `8888`          | Port exposed by the container                 |
 
 ```shell
 docker build \

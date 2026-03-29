@@ -1,0 +1,15 @@
+node_modules
+dist
+public
+coverage
+.env
+.env.*
+!.env.example
+*.log
+.git
+.github
+.idea
+.vscode
+.claude
+src/**/*.test.ts
+src/__tests__

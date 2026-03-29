@@ -11,6 +11,7 @@
         "module": "nodenext",
         // Sets up "moduleResolution"
         "lib": ["esnext"],
+        "types": ["node"],
         // Don't check .d.ts files
         "skipLibCheck": true,
         // Emptily imported modules must exist

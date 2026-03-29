@@ -1,7 +1,7 @@
 {
     "name": "@darthcav/ts-http-server",
     "description": "A TypeScript HTTP server for Node.js >= 25",
-    "version": "0.3.1",
+    "version": "0.3.2",
     "author": {
         "name": "darthcav",
         "url": "https://github.com/darthcav"

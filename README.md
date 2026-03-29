@@ -107,13 +107,62 @@ dist/               # Compiled output (generated)
 public/             # Documentation output (generated)
 ```
 
+## Docker
+
+### Build
+
+```shell
+docker build -t ts-http-server .
+```
+
+Available build arguments:
+
+| Argument               | Default         | Description                          |
+|------------------------|-----------------|--------------------------------------|
+| `BUILD_IMAGE`          | `node:25-alpine`| Base image for both stages           |
+| `APP_USER`             | `node`          | OS user owning `/app` and running the process |
+| `APP_GROUP`            | `node`          | OS group owning `/app`               |
+| `CONTAINER_EXPOSE_PORT`| `8888`          | Port exposed by the container (also set as `ENV`) |
+
+```shell
+docker build \
+  --build-arg APP_USER=1001 \
+  --build-arg APP_GROUP=1001 \
+  --build-arg CONTAINER_EXPOSE_PORT=9000 \
+  -t ts-http-server .
+```
+
+### Run
+
+```shell
+docker run --rm -p 8888:8888 ts-http-server
+```
+
+### Docker Compose
+
+```yaml
+services:
+  app:
+    image: ts-http-server
+    ports:
+      - "8888:8888"
+    environment:
+      NODE_ENV: production
+    # Override the running user at runtime (must match a valid UID:GID on the host if needed)
+    user: "1001:1001"
+```
+
+> **Note:** `APP_USER`/`APP_GROUP` are baked in at build time via `chown` and `USER`.
+> To override the running user at runtime use the `user:` key in docker-compose,
+> **not** the `environment:` block.
+
 ## License
 
 [Apache-2.0](LICENSE)
 
 [node-version]: https://img.shields.io/badge/node-%3E%3D25-orange.svg?style=flat-square
 [node-url]: https://nodejs.org
-[version-image]: https://img.shields.io/badge/version-0.3.1-blue.svg?style=flat-square
+[version-image]: https://img.shields.io/badge/version-0.3.2-blue.svg?style=flat-square
 [ci-badge]: https://github.com/darthcav/ts-http-server/actions/workflows/tests.yml/badge.svg
 [coverage-badge]: https://codecov.io/github/darthcav/ts-http-server/branch/dev/graph/badge.svg?token=K8Q4T4N9SG
 [coverage-url]: https://codecov.io/github/darthcav/ts-http-server

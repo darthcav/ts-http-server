@@ -1,15 +1,34 @@
-node_modules
-dist
-public
-coverage
+# IDEs
+/.idea
+/.vscode
+
+# AI Assistants
+/.claude
+
+# Version control
+.git
+.github
+
+# Environment variable files
 .env
 .env.*
 !.env.example
-*.log
-.git
-.github
-.idea
-.vscode
-.claude
+
+# Test files
 src/**/*.test.ts
 src/__tests__
+
+# Dependency directories
+/node_modules
+
+# Build output
+/dist
+
+# Doc output
+/public
+
+# Test coverage
+/coverage
+
+# Logs
+*.log

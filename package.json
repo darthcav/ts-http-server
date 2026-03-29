@@ -1,7 +1,7 @@
 {
     "name": "@darthcav/ts-http-server",
     "description": "A TypeScript HTTP server for Node.js >= 25",
-    "version": "0.3.1",
+    "version": "0.3.2",
     "author": {
         "name": "darthcav",
         "url": "https://github.com/darthcav"
@@ -24,7 +24,7 @@
         "dist"
     ],
     "dependencies": {
-        "@darthcav/ts-utils": "0.8.4",
+        "@darthcav/ts-utils": "0.8.5",
         "@fastify/accepts": "5.0.4",
         "@fastify/compress": "8.3.1",
         "@fastify/cors": "11.2.0",
@@ -33,18 +33,18 @@
         "@fastify/static": "9.0.0",
         "@fastify/view": "11.1.1",
         "@hapi/boom": "10.0.1",
-        "@logtape/fastify": "2.0.4",
-        "@logtape/logtape": "2.0.4",
+        "@logtape/fastify": "2.0.5",
+        "@logtape/logtape": "2.0.5",
         "ejs": "5.0.1",
-        "fastify": "5.8.2"
+        "fastify": "5.8.4"
     },
     "devDependencies": {
-        "@biomejs/biome": "2.4.8",
+        "@biomejs/biome": "2.4.9",
         "@types/ejs": "3.1.5",
         "@types/node": "25.5.0",
         "asserttt": "1.0.1",
         "shx": "0.4.0",
-        "typedoc": "0.28.17"
+        "typedoc": "0.28.18"
     },
     "repository": {
         "type": "git",

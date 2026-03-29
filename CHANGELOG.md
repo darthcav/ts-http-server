@@ -5,6 +5,31 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.2] - 2026-03-29
+
+### Changed
+
+- `Dockerfile` rewritten as a multi-stage build (`build` → runtime)
+- `Dockerfile`: base image configurable via `BUILD_IMAGE` build arg (default `node:25-alpine`)
+- `Dockerfile`: runtime user/group configurable via `APP_USER` / `APP_GROUP` build args (default `node:node`); use `user:` in docker-compose to override at runtime
+- `Dockerfile`: exposed port configurable via `CONTAINER_EXPOSE_PORT` build arg, also set as a runtime `ENV` (default `8888`)
+- `Dockerfile`: `npm ci` now runs with `--no-audit --no-fund`
+
+### Dependencies
+
+- `@darthcav/ts-utils` 0.8.4 → 0.8.5
+- `fastify` 5.8.2 → 5.8.4
+- `@logtape/fastify` 2.0.4 → 2.0.5
+- `@logtape/logtape` 2.0.4 → 2.0.5
+- `@biomejs/biome` 2.4.8 → 2.4.9
+- `typedoc` 0.28.17 → 0.28.18
+
+### CI
+
+- `actions/configure-pages` v5 → v6
+- `actions/deploy-pages` v4 → v5
+- `codecov/codecov-action` v5 → v6
+
 ## [0.3.1] - 2026-03-22
 
 ### Fixed

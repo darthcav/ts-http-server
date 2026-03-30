@@ -1,4 +1,4 @@
-import process, { env } from "node:process"
+import process from "node:process"
 import { notFound } from "@hapi/boom"
 import Fastify, { type FastifyInstance } from "fastify"
 import defaultErrorHandler from "./defaults/defaultErrorHandler.ts"
@@ -29,7 +29,7 @@ export default function launcher({
     done,
 }: LauncherOptions): FastifyInstance {
     const host = locals?.host ?? "localhost"
-    const port = locals?.port ?? Number(env["CONTAINER_EXPOSE_PORT"] ?? 8888)
+    const port = locals?.port ?? 8888
 
     const fastify = Fastify({
         ...defaultFastifyOptions(logger),

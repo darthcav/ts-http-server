@@ -1,4 +1,4 @@
-import process from "node:process"
+import process, { env } from "node:process"
 import { getConsoleLogger, main } from "@darthcav/ts-utils"
 import pkg from "../package.json" with { type: "json" }
 import { defaultPlugins, defaultRoutes, launcher } from "./index.ts"
@@ -6,7 +6,11 @@ import { defaultPlugins, defaultRoutes, launcher } from "./index.ts"
 const logger = await getConsoleLogger(pkg.name, "info")
 
 main(pkg.name, logger, () => {
-    const locals = { pkg }
+    const locals = {
+        pkg,
+        host: env["HOST"] ?? "localhost",
+        port: Number(env["CONTAINER_EXPOSE_PORT"]) ?? 8888,
+    }
     const plugins = defaultPlugins({ locals })
     const routes = defaultRoutes()
 

@@ -5,6 +5,33 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.1] - 2026-03-30
+
+### Fixed
+
+- `Dockerfile`: corrected `ENTRYPOINT` exec-form — was a single string `"node src/start.ts"` (invalid), now properly
+  split as `"node", "src/start.ts"`
+
+### Changed
+
+- `Dockerfile`: runtime `WORKDIR` moved from `/app` to `/home/${APP_USER}/app` (inside the `node` user's home directory)
+
+### Dependencies
+
+- `prettier`: unpinned range `^3.8.1` → exact `3.8.1`
+
+## [0.5.0] - 2026-03-30
+
+### Changed
+
+- `src/start.ts`: `HOST` and `CONTAINER_EXPOSE_PORT` env vars now resolved here and passed as `locals` to launcher
+- `src/launcher.ts`: removed `env` import; port default simplified to plain literal `8888` (env var reading moved to
+  `start.ts`)
+- `.env.example`: added `HOST` and `CONTAINER_EXPOSE_PORT` entries
+- `.prettierrc.json`: added Prettier configuration for markdown files (`proseWrap`, `printWidth`,
+  `embeddedLanguageFormatting`)
+- `README.md`: formatting improvements
+
 ## [0.4.0] - 2026-03-29
 
 ### Changed

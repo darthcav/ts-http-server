@@ -14,10 +14,9 @@ ARG APP_USER=node
 ARG APP_GROUP=node
 ARG CONTAINER_EXPOSE_PORT=8888
 ENV CONTAINER_EXPOSE_PORT=${CONTAINER_EXPOSE_PORT}
-WORKDIR /app
+WORKDIR /home/${APP_USER}/app
 COPY --from=build /app/ ./
-RUN chown -R ${APP_USER}:${APP_GROUP} /app
+RUN chown -R ${APP_USER}:${APP_GROUP} /home/${APP_USER}/app
 USER ${APP_USER}
 EXPOSE ${CONTAINER_EXPOSE_PORT}
-
-ENTRYPOINT [ "node src/start.ts" ]
+ENTRYPOINT [ "node", "src/start.ts" ]

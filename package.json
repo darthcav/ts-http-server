@@ -1,7 +1,7 @@
 {
     "name": "@darthcav/ts-http-server",
     "description": "A TypeScript HTTP server for Node.js >= 25",
-    "version": "0.4.0",
+    "version": "0.5.0",
     "author": {
         "name": "darthcav",
         "url": "https://github.com/darthcav"
@@ -19,7 +19,6 @@
     },
     "files": [
         "src",
-        "!src/**/*.test.ts",
         "!src/__tests__",
         "dist"
     ],
@@ -43,6 +42,7 @@
         "@types/ejs": "3.1.5",
         "@types/node": "25.5.0",
         "asserttt": "1.0.1",
+        "prettier": "3.8.1",
         "shx": "0.4.0",
         "typedoc": "0.28.18"
     },
@@ -67,8 +67,8 @@
         "test:coverage": "node --env-file=.env.local --experimental-test-coverage --test 'src/**/*.test.ts'",
         "test:coverage:lcov": "shx mkdir -p coverage && node --env-file=.env.local --experimental-test-coverage --test-reporter=lcov --test-reporter-destination=coverage/lcov.info --test-reporter=spec --test-reporter-destination=stdout --test 'src/**/*.test.ts'",
         "\n===== Linter =====": "",
-        "lint": "biome check .",
-        "lint:fix": "biome check --write .",
+        "lint": "biome check . && prettier --check \"**/*.md\" --ignore-path .gitignore",
+        "lint:fix": "biome check --write . && prettier --write \"**/*.md\" --ignore-path .gitignore",
         "\n===== TypeDoc =====": "",
         "doc": "shx rm -rf public/* && typedoc --tsconfig tsconfig.json"
     }

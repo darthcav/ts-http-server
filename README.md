@@ -59,11 +59,11 @@ main(pkg.name, logger, false, () => {
 })
 ```
 
-The `defaultPlugins` function accepts an optional `baseDir` to resolve the `src/` folder
-(defaults to the parent of `import.meta.dirname`):
+The `defaultPlugins` function accepts an optional `baseDir` to resolve the `src/` folder (defaults to the parent of
+`import.meta.dirname`):
 
 ```ts
-const plugins = defaultPlugins({ locals, baseDir: import.meta.dirname })
+const plugins = defaultPlugins({ locals, baseDir: import.meta.dirname });
 ```
 
 ## Getting Started
@@ -94,7 +94,7 @@ npm run doc
 
 ## Project Structure
 
-```
+```text
 src/
   index.ts          # Library entry point
   start.ts          # Application entry point
@@ -117,12 +117,12 @@ docker build -t ts-http-server .
 
 Available build arguments:
 
-| Argument               | Default         | Description                                   |
-|------------------------|-----------------|-----------------------------------------------|
-| `BUILD_IMAGE`          | `node:25-alpine`| Base image for both stages                    |
-| `APP_USER`             | `node`          | OS user owning `/app` and running the process |
-| `APP_GROUP`            | `node`          | OS group owning `/app`                        |
-| `CONTAINER_EXPOSE_PORT`| `8888`          | Port exposed by the container                 |
+| Argument                | Default          | Description                                   |
+| ----------------------- | ---------------- | --------------------------------------------- |
+| `BUILD_IMAGE`           | `node:25-alpine` | Base image for both stages                    |
+| `APP_USER`              | `node`           | OS user owning `/app` and running the process |
+| `APP_GROUP`             | `node`           | OS group owning `/app`                        |
+| `CONTAINER_EXPOSE_PORT` | `8888`           | Port exposed by the container                 |
 
 ```shell
 docker build \
@@ -132,10 +132,17 @@ docker build \
   -t ts-http-server .
 ```
 
+Runtime environment variables:
+
+| Variable                | Default     | Description                                |
+| ----------------------- | ----------- | ------------------------------------------ |
+| `HOST`                  | `localhost` | Bind address (use `0.0.0.0` in containers) |
+| `CONTAINER_EXPOSE_PORT` | `8888`      | Port the server listens on                 |
+
 ### Run
 
 ```shell
-docker run --rm -p 8888:8888 ts-http-server
+docker run --rm -p 8888:8888 -e HOST=0.0.0.0 ts-http-server
 ```
 
 ### Docker Compose
@@ -148,13 +155,14 @@ services:
       - "8888:8888"
     environment:
       NODE_ENV: production
-    # Override the running user at runtime (must match a valid UID:GID on the host if needed)
+      HOST: 0.0.0.0
+    # Override the running user at runtime
+    # (must match a valid UID:GID on the host if needed)
     user: "1001:1001"
 ```
 
-> **Note:** `APP_USER`/`APP_GROUP` are baked in at build time via `chown` and `USER`.
-> To override the running user at runtime use the `user:` key in docker-compose,
-> **not** the `environment:` block.
+> **Note:** `APP_USER`/`APP_GROUP` are baked in at build time via `chown` and `USER`. To override the running user at
+> runtime use the `user:` key in docker-compose, **not** the `environment:` block.
 
 ## License
 
@@ -162,7 +170,7 @@ services:
 
 [node-version]: https://img.shields.io/badge/node-%3E%3D25-orange.svg?style=flat-square
 [node-url]: https://nodejs.org
-[version-image]: https://img.shields.io/badge/version-0.4.0-blue.svg?style=flat-square
+[version-image]: https://img.shields.io/badge/version-0.5.0-blue.svg?style=flat-square
 [ci-badge]: https://github.com/darthcav/ts-http-server/actions/workflows/tests.yml/badge.svg
 [coverage-badge]: https://codecov.io/github/darthcav/ts-http-server/branch/dev/graph/badge.svg?token=K8Q4T4N9SG
 [coverage-url]: https://codecov.io/github/darthcav/ts-http-server

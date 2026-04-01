@@ -59,6 +59,34 @@ const routes = new Map<string, RouteOptions>([
             },
         },
     ],
+    [
+        "ERROR_INVALID_STATUS",
+        {
+            method: "GET",
+            url: "/error-invalid-status",
+            handler: async (
+                _request: import("fastify").FastifyRequest,
+                reply: import("fastify").FastifyReply,
+            ) => {
+                reply.status(600)
+                throw new Error("error with out-of-range status code")
+            },
+        },
+    ],
+    [
+        "ERROR_VALID_STATUS",
+        {
+            method: "GET",
+            url: "/error-valid-status",
+            handler: async (
+                _request: import("fastify").FastifyRequest,
+                reply: import("fastify").FastifyReply,
+            ) => {
+                reply.status(503)
+                throw new Error("error with valid 5xx status code")
+            },
+        },
+    ],
 ])
 
 // ---------------------------------------------------------------------------
@@ -132,5 +160,19 @@ suite("launcher [HTTP]", () => {
             headers: { accept: "text/plain" },
         })
         equal(res.status, 500)
+    })
+
+    test("GET /error-invalid-status → 500 (statusCode > 599 reset to 500)", async () => {
+        const res = await fetch(`${base}/error-invalid-status`, {
+            headers: { accept: "application/json" },
+        })
+        equal(res.status, 500)
+    })
+
+    test("GET /error-valid-status → 503 (valid 4xx–5xx status preserved)", async () => {
+        const res = await fetch(`${base}/error-valid-status`, {
+            headers: { accept: "application/json" },
+        })
+        equal(res.status, 503)
     })
 })

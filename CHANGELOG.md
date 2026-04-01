@@ -5,6 +5,66 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.0] - 2026-04-01
+
+### Added
+
+- `src/types.ts`: `ApiAuthConfig` — discriminated union accepting either a static `bearerToken` string or a custom
+  `validateAuthorization` async callback, with an optional `realm` for the `WWW-Authenticate` challenge
+- `src/types.ts`: `ApiAuthValidator` — callback type for the custom authorization validator
+- `src/types.ts`: `DefaultPluginsOptions` and `DefaultRoutesOptions` — options types for `defaultPlugins` and
+  `defaultRoutes`, now exported from the package entry point alongside `ApiAuthConfig` and `ApiAuthValidator`
+- `src/types.ts`: Fastify module augmentation (`declare module "fastify"`) that exposes `locals: LauncherLocals` on
+  `FastifyInstance`, making `request.server.locals` fully typed in route handlers without manual casts
+- `src/defaults/defaultPlugins.ts`: `@fastify/swagger` (static mode, fully inlined OpenAPI document) and
+  `@fastify/swagger-ui` (served at `/docs/`) plugins; `apiAuth` option marks `/api/` operations as bearer-protected in
+  the generated OpenAPI document when provided
+- `src/defaults/defaultPlugins.ts`: `connectSrc` CSP directive allowing `https://cdn.jsdelivr.net/` — fixes browser
+  console error when fetching Bootstrap source maps
+- `src/defaults/defaultRoutes.ts`: `GET /api/` route returning a JSON welcome message (content-negotiated; 406 for
+  non-JSON); `DELETE|PATCH|POST|PUT /api/` returning 405 with `Allow: GET, HEAD`; optional `apiAuth` guard that
+  challenges unauthenticated requests with `401 Unauthorized` and `WWW-Authenticate: Bearer`
+- `src/openapi/api.yaml`: `operationId` on all operations; `summary` on all 405 operations; `securitySchemes.bearerAuth`
+  definition under `components`; `WelcomeMessage` response schema extracted into `components/schemas`
+- `src/views/index.ejs`: link to `/docs/` OpenAPI documentation
+- `src/start.ts`: reads `API_BEARER_TOKEN` (enables bearer auth) and `API_AUTH_REALM` (realm, default `api`) env vars
+
+### Fixed
+
+- `src/defaults/defaultPlugins.ts`: `postProcessor` was `async` inside `forEach`, silently dropping all Promises and
+  returning an unresolved `Promise` as the swagger document — Swagger UI showed "invalid version field". Fixed by
+  resolving `$ref` schemas synchronously with `readFileSync` + `for...of` before building the plugin map, and switching
+  to `specification: { document }` (inline) instead of `specification: { path, postProcessor }`
+- `src/defaults/defaultPlugins.ts`: `$ref` path built with `` `${baseDir}/src/openapi/` `` string interpolation — broke
+  when `baseDir` was `null` (resolved to `"null/src/openapi/"`). Now uses `join(srcDir, "openapi", ...)`
+- `src/defaults/defaultRoutes.ts`: `this?.locals?.pkg?.name` in arrow function always resolved to `undefined` (arrow
+  functions have no own `this`). Replaced with `request.server.locals` via the new module augmentation
+- `src/defaults/defaultRoutes.ts`: syntax error `request.server.["locals"]` corrected to `request.server.locals`
+- `src/openapi/api.yaml`: removed invalid `content` block on `HEAD` 200 response (HEAD responses must not have a body)
+- `src/openapi/schemas/Error.yaml`: `$schema` updated from JSON Schema draft-07 to 2020-12 (required by OpenAPI 3.1);
+  `code` field type corrected from `string` to `integer`
+
+### Changed
+
+- `src/types.ts`: `pkg?: object` widened to `pkg?: Record<string, unknown>` for typed property access
+- `src/types.ts`: `DefaultPluginsOptions` and `DefaultRoutesOptions` moved here from their respective module files so
+  that all public option types are co-located and exported from the package entry point
+- `src/defaults/defaultPlugins.ts`: `OpenAPI` import replaced with `OpenAPIV3_1` for precise typing of the swagger
+  document and schema objects in the `$ref` resolution loop
+- `src/defaults/defaultRoutes.ts`: local `DefaultRoutesOptions` and `validateApiAuthorization` helper consolidated —
+  auth logic inlined into `createApiAuthPreHandler` to remove the redundant indirection layer
+
+### Tests
+
+- `src/__tests__/defaultPlugins.test.ts`: updated plugin count assertion (7 → 9); added presence checks for
+  `@fastify/swagger` and `@fastify/swagger-ui`; added OpenAPI document assertions for the auth-enabled and auth-disabled
+  variants of the generated document
+- `src/__tests__/defaultRoutes.test.ts`: added coverage for `GET /api/` (200 + 406), `HEAD /api/` (200),
+  `DELETE|PATCH|POST|PUT /api/` (all 405); added auth suite covering 401 without/with wrong token and 200 with valid
+  token; added suite for custom `validateAuthorization` covering the async callback path
+- `src/__tests__/launcher.test.ts`: added test for `statusCode > 599` reset-to-500 branch and for valid 4xx–5xx status
+  preservation (503 must not be reset to 500) in `defaultErrorHandler`
+
 ## [0.5.1] - 2026-03-30
 
 ### Fixed

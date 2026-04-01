@@ -12,7 +12,8 @@ A TypeScript wrapper HTTP server for Node.js >= 25 based upon [Fastify](https://
 - Strict TypeScript configuration with isolated declarations
 - Content negotiation for error responses (HTML / JSON / plain-text)
 - Access logging via `onResponse` hook — `info` for 2xx/3xx, `error` for 4xx/5xx
-- Default plugin set: CORS, compression, ETag, Helmet CSP, EJS views, and static files
+- Default plugin set: accepts, CORS, compression, ETag, Helmet CSP, EJS views, static files, Swagger, and Swagger UI
+- Optional bearer-token authentication for the default `/api/` routes
 - Returns a `FastifyInstance` for graceful shutdown via `SIGINT`/`SIGTERM`
 - Biome for linting and formatting
 - Built-in Node.js test runner
@@ -35,10 +36,13 @@ import pkg from "./package.json" with { type: "json" }
 
 const logger = await getConsoleLogger(pkg.name, "info")
 
-main(pkg.name, logger, false, () => {
+main(pkg.name, logger, async () => {
     const locals = { pkg }
-    const plugins = defaultPlugins({ locals })
-    const routes = defaultRoutes()
+    const apiAuth = process.env["API_BEARER_TOKEN"]
+        ? { bearerToken: process.env["API_BEARER_TOKEN"] }
+        : undefined
+    const plugins = defaultPlugins({ locals, apiAuth })
+    const routes = defaultRoutes({ apiAuth })
 
     const fastify = launcher({ logger, locals, plugins, routes })
 
@@ -65,6 +69,43 @@ The `defaultPlugins` function accepts an optional `baseDir` to resolve the `src/
 ```ts
 const plugins = defaultPlugins({ locals, baseDir: import.meta.dirname });
 ```
+
+To protect the default `/api/` routes, provide `apiAuth` when building the default plugins and routes:
+
+```ts
+const apiAuth = { bearerToken: process.env["API_BEARER_TOKEN"] ?? "change-me" };
+const plugins = defaultPlugins({ locals, apiAuth });
+const routes = defaultRoutes({ apiAuth });
+```
+
+When `apiAuth` is enabled, the default `/api/` routes require `Authorization: Bearer <token>` and the generated Swagger
+document marks those endpoints as bearer-protected. When omitted, the default `/api/` routes remain public and Swagger
+documents them as public too.
+
+If you need to delegate authentication to JWT verification or another backend, provide a custom validator instead of a
+static token:
+
+```ts
+const apiAuth = {
+    realm: "example-api",
+    validateAuthorization: async (authorizationHeader) => {
+        if (!authorizationHeader?.startsWith("Bearer ")) {
+            return false
+        }
+
+        const token = authorizationHeader.slice("Bearer ".length)
+
+        // Replace this with your real JWT or backend verification.
+        return token === "trusted-token"
+    },
+}
+
+const plugins = defaultPlugins({ locals, apiAuth })
+const routes = defaultRoutes({ apiAuth })
+```
+
+The validator receives the raw `Authorization` header and should return `true` to allow the request or `false` to
+trigger the default `401 Unauthorized` response. It can also throw if you need to surface a custom auth error.
 
 ## Getting Started
 
@@ -134,10 +175,12 @@ docker build \
 
 Runtime environment variables:
 
-| Variable                | Default     | Description                                |
-| ----------------------- | ----------- | ------------------------------------------ |
-| `HOST`                  | `localhost` | Bind address (use `0.0.0.0` in containers) |
-| `CONTAINER_EXPOSE_PORT` | `8888`      | Port the server listens on                 |
+| Variable                | Default     | Description                                                |
+| ----------------------- | ----------- | ---------------------------------------------------------- |
+| `HOST`                  | `localhost` | Bind address (use `0.0.0.0` in containers)                 |
+| `CONTAINER_EXPOSE_PORT` | `8888`      | Port the server listens on                                 |
+| `API_BEARER_TOKEN`      | unset       | Enables bearer auth on the default `/api/` routes when set |
+| `API_AUTH_REALM`        | `api`       | Realm used in the bearer challenge response                |
 
 ### Run
 
@@ -170,7 +213,7 @@ services:
 
 [node-version]: https://img.shields.io/badge/node-%3E%3D25-orange.svg?style=flat-square
 [node-url]: https://nodejs.org
-[version-image]: https://img.shields.io/badge/version-0.5.1-blue.svg?style=flat-square
+[version-image]: https://img.shields.io/badge/version-0.6.0-blue.svg?style=flat-square
 [ci-badge]: https://github.com/darthcav/ts-http-server/actions/workflows/tests.yml/badge.svg
 [coverage-badge]: https://codecov.io/github/darthcav/ts-http-server/branch/dev/graph/badge.svg?token=K8Q4T4N9SG
 [coverage-url]: https://codecov.io/github/darthcav/ts-http-server

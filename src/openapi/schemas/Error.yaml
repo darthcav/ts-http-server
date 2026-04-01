@@ -1,0 +1,14 @@
+# Error schema
+$id: https://darthcav.github.io/api/v1/schemas/Error
+$schema: https://json-schema.org/draft/2020-12/schema
+title: Error schema for the APIs
+description: Error model for the APIs
+type: object
+required: [ message ]
+properties:
+  message:
+    description: Error message.
+    type: string
+  code:
+    description: HTTP status code.
+    type: integer

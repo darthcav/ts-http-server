@@ -13,10 +13,15 @@ import preHandler from "./hooks/preHandler.ts"
 import launcher from "./launcher.ts"
 
 export type {
+    ApiAuthConfig,
+    ApiAuthValidator,
+    DefaultPluginsOptions,
+    DefaultRoutesOptions,
     FSTPlugin,
     LauncherLocals,
     LauncherOptions,
 } from "./types.ts"
+
 export {
     defaultErrorHandler,
     defaultFastifyOptions,

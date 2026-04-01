@@ -47,7 +47,6 @@ suite("defaultRoutes [HTTP]", () => {
     const locals = {
         pkg: { name: "ts-http-server", version: "0.0.0", description: "Test" },
     }
-    const plugins = defaultPlugins({ locals })
     const routes = new Map([...defaultRoutes(), ...errorRoute()])
 
     const port = 19002
@@ -55,6 +54,7 @@ suite("defaultRoutes [HTTP]", () => {
     let server: FastifyInstance
 
     before(async () => {
+        const plugins = defaultPlugins({ locals })
         server = launcher({
             logger: testLogger,
             locals: { ...locals, port },
@@ -200,5 +200,215 @@ suite("defaultRoutes [HTTP]", () => {
         equal(res.status, 404)
         match(res.headers.get("content-type") ?? "", /text\/plain/)
         ok(body.includes("Not Found"))
+    })
+
+    test("GET /api/ with application/json → 200 welcome message", async () => {
+        const res = await fetch(`${base}/api/`, {
+            headers: { accept: "application/json" },
+        })
+        const body = (await res.json()) as { message: string }
+        equal(res.status, 200)
+        match(res.headers.get("content-type") ?? "", /application\/json/)
+        ok(typeof body.message === "string")
+    })
+
+    test("GET /api/ with text/html → 406 Not Acceptable", async () => {
+        const res = await fetch(`${base}/api/`, {
+            headers: { accept: "text/html" },
+        })
+        equal(res.status, 406)
+    })
+
+    test("HEAD /api/ → 200", async () => {
+        const res = await fetch(`${base}/api/`, { method: "HEAD" })
+        equal(res.status, 200)
+    })
+
+    test("DELETE /api/ → 405 Method Not Allowed", async () => {
+        const res = await fetch(`${base}/api/`, { method: "DELETE" })
+        equal(res.status, 405)
+        equal(res.headers.get("allow"), "GET, HEAD")
+    })
+
+    test("PATCH /api/ → 405 Method Not Allowed", async () => {
+        const res = await fetch(`${base}/api/`, { method: "PATCH" })
+        equal(res.status, 405)
+        equal(res.headers.get("allow"), "GET, HEAD")
+    })
+
+    test("POST /api/ → 405 Method Not Allowed", async () => {
+        const res = await fetch(`${base}/api/`, { method: "POST" })
+        equal(res.status, 405)
+        equal(res.headers.get("allow"), "GET, HEAD")
+    })
+
+    test("PUT /api/ → 405 Method Not Allowed", async () => {
+        const res = await fetch(`${base}/api/`, { method: "PUT" })
+        equal(res.status, 405)
+        equal(res.headers.get("allow"), "GET, HEAD")
+    })
+})
+
+suite("defaultRoutes [HTTP] with optional API auth", () => {
+    const noop = (): void => {}
+    const testLogger = {
+        category: ["test"],
+        info: noop,
+        error: noop,
+        warn: noop,
+        debug: noop,
+        getChild: () => testLogger,
+    } as unknown as Logger
+
+    const locals = {
+        pkg: { name: "ts-http-server", version: "0.0.0", description: "Test" },
+    }
+
+    const port = 19004
+    const base = `http://localhost:${port}`
+    let server: FastifyInstance
+
+    before(async () => {
+        const apiAuth = {
+            bearerToken: "top-secret",
+            realm: "test-api",
+        } as const
+        const plugins = defaultPlugins({ locals, apiAuth })
+        server = launcher({
+            logger: testLogger,
+            locals: { ...locals, port },
+            plugins,
+            routes: defaultRoutes({ apiAuth }),
+            opts: { disableRequestLogging: true },
+        })
+        await setTimeout(1000)
+    })
+
+    after(async () => {
+        await setTimeout(500)
+        await server.close()
+    })
+
+    test("GET /api/ without Authorization → 401 Unauthorized", async () => {
+        const res = await fetch(`${base}/api/`, {
+            headers: { accept: "application/json" },
+        })
+        const body = (await res.json()) as {
+            statusCode: number
+            error: string
+            message: string
+        }
+        equal(res.status, 401)
+        equal(res.headers.get("www-authenticate"), 'Bearer realm="test-api"')
+        match(res.headers.get("content-type") ?? "", /application\/json/)
+        equal(body.statusCode, 401)
+        equal(body.error, "Unauthorized")
+    })
+
+    test("GET /api/ with invalid Authorization → 401 Unauthorized", async () => {
+        const res = await fetch(`${base}/api/`, {
+            headers: {
+                accept: "application/json",
+                authorization: "Bearer wrong-token",
+            },
+        })
+        equal(res.status, 401)
+        equal(res.headers.get("www-authenticate"), 'Bearer realm="test-api"')
+    })
+
+    test("GET /api/ with valid Authorization → 200 welcome message", async () => {
+        const res = await fetch(`${base}/api/`, {
+            headers: {
+                accept: "application/json",
+                authorization: "Bearer top-secret",
+            },
+        })
+        const body = (await res.json()) as { message: string }
+        equal(res.status, 200)
+        match(res.headers.get("content-type") ?? "", /application\/json/)
+        ok(typeof body.message === "string")
+    })
+
+    test("DELETE /api/ with valid Authorization → 405 Method Not Allowed", async () => {
+        const res = await fetch(`${base}/api/`, {
+            method: "DELETE",
+            headers: { authorization: "Bearer top-secret" },
+        })
+        equal(res.status, 405)
+        equal(res.headers.get("allow"), "GET, HEAD")
+    })
+})
+
+suite("defaultRoutes [HTTP] with custom validateAuthorization", () => {
+    const noop = (): void => {}
+    const testLogger = {
+        category: ["test"],
+        info: noop,
+        error: noop,
+        warn: noop,
+        debug: noop,
+        getChild: () => testLogger,
+    } as unknown as Logger
+
+    const locals = {
+        pkg: { name: "ts-http-server", version: "0.0.0", description: "Test" },
+    }
+
+    const port = 19005
+    const base = `http://localhost:${port}`
+    let server: FastifyInstance
+
+    before(async () => {
+        const apiAuth = {
+            realm: "custom",
+            validateAuthorization: async (authHeader: string | undefined) => {
+                return authHeader === "Bearer custom-token"
+            },
+        }
+        const plugins = defaultPlugins({ locals, apiAuth })
+        server = launcher({
+            logger: testLogger,
+            locals: { ...locals, port },
+            plugins,
+            routes: defaultRoutes({ apiAuth }),
+            opts: { disableRequestLogging: true },
+        })
+        await setTimeout(1000)
+    })
+
+    after(async () => {
+        await setTimeout(500)
+        await server.close()
+    })
+
+    test("GET /api/ with valid Authorization → 200 (custom validator returns true)", async () => {
+        const res = await fetch(`${base}/api/`, {
+            headers: {
+                accept: "application/json",
+                authorization: "Bearer custom-token",
+            },
+        })
+        const body = (await res.json()) as { message: string }
+        equal(res.status, 200)
+        ok(typeof body.message === "string")
+    })
+
+    test("GET /api/ without Authorization → 401 (custom validator returns false)", async () => {
+        const res = await fetch(`${base}/api/`, {
+            headers: { accept: "application/json" },
+        })
+        equal(res.status, 401)
+        equal(res.headers.get("www-authenticate"), 'Bearer realm="custom"')
+    })
+
+    test("GET /api/ with wrong token → 401 (custom validator returns false)", async () => {
+        const res = await fetch(`${base}/api/`, {
+            headers: {
+                accept: "application/json",
+                authorization: "Bearer wrong",
+            },
+        })
+        equal(res.status, 401)
+        equal(res.headers.get("www-authenticate"), 'Bearer realm="custom"')
     })
 })

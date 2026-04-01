@@ -13,11 +13,35 @@ import type {
  */
 export type FSTPlugin = {
     /** The Fastify plugin function to register. */
-    // biome-ignore lint/suspicious/noExplicitAny: third-party plugins use varied option types
+    // biome-ignore lint/suspicious/noExplicitAny: plugin opts types vary per third-party plugin; any is required for assignability
     plugin: FastifyPluginCallback<any> | FastifyPluginAsync<any>
     /** Optional options forwarded to the plugin on registration. */
     opts?: FastifyPluginOptions
 }
+
+/**
+ * Configuration for Keycloak-backed JWT authentication.
+ */
+export type KeycloakAuthConfig = {
+    /** Keycloak server base URL, e.g. `https://auth.example.com`. */
+    url: string
+    /** Keycloak realm name. */
+    realm: string
+    /** Client ID registered in the realm; used as the expected audience. */
+    clientId: string
+    /** Client secret for the registered client. */
+    clientSecret: string
+}
+
+/**
+ * Async function that verifies a bearer token from the `Authorization` header.
+ *
+ * Return `true` to allow the request, `false` to reject it with the default
+ * 401 response, or throw to surface a custom error.
+ */
+export type TokenVerifier = (
+    authorizationHeader: string | undefined,
+) => Promise<boolean>
 
 /**
  * Application locals decorated onto the Fastify instance and available
@@ -25,11 +49,24 @@ export type FSTPlugin = {
  */
 export type LauncherLocals = {
     /** Package metadata (e.g. contents of `package.json`). */
-    pkg?: object
+    pkg?: Record<string, unknown>
     /** Hostname the server will bind to. */
     host?: string
     /** Port the server will listen on. */
     port?: number
+    /**
+     * Glob patterns (picomatch) for routes that require bearer-token
+     * authentication via the `verifyToken` Fastify decorator.
+     * When `undefined` or empty, authentication is disabled.
+     *
+     * Example: `["/api/**"]`
+     */
+    authPaths?: string[]
+    /**
+     * Protection-space label used in the `WWW-Authenticate` challenge (RFC 6750).
+     * Typically the Keycloak realm name. Defaults to `"api"` when omitted.
+     */
+    authRealm?: string
     /** Any additional application-specific locals. */
     [key: string]: unknown
 }
@@ -48,8 +85,40 @@ export type LauncherOptions = {
     routes: Map<string, RouteOptions>
     /** Map of named decorators to add to the Fastify instance. */
     decorators?: Map<string, unknown>
+    /**
+     * Token verifier registered as the `verifyToken` Fastify decorator.
+     *
+     * When omitted and `locals.authPaths` is set, all protected routes will
+     * respond with `401 Unauthorized`.
+     */
+    verifyToken?: TokenVerifier
     /** Optional Fastify server options (merged over {@link defaultFastifyOptions}). */
     opts?: FastifyServerOptions
     /** Optional callback invoked once the server is listening. */
     done?: () => void
+}
+
+/**
+ * Options accepted by the {@link defaultPlugins} function.
+ */
+export type DefaultPluginsOptions = {
+    /** Application locals; `locals.pkg` is exposed as the default EJS context. */
+    locals: LauncherLocals
+    /** Optional base directory for resolving the `src/` folder; defaults to the parent of `import.meta.dirname`. */
+    baseDir?: string | null
+    /** Optional Keycloak configuration used to mark the generated `/api/` OpenAPI operations as OpenID Connect–protected. */
+    keycloakAuth?: KeycloakAuthConfig
+}
+
+/**
+ * Fastify module augmentation that exposes {@link LauncherLocals} and the
+ * {@link TokenVerifier} as first-class decorators on every `FastifyInstance`.
+ *
+ * Both are registered in {@link launcher} via `fastify.decorate(...)`.
+ */
+declare module "fastify" {
+    interface FastifyInstance {
+        locals: LauncherLocals
+        verifyToken: TokenVerifier
+    }
 }

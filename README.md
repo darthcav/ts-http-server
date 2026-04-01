@@ -12,7 +12,8 @@ A TypeScript wrapper HTTP server for Node.js >= 25 based upon [Fastify](https://
 - Strict TypeScript configuration with isolated declarations
 - Content negotiation for error responses (HTML / JSON / plain-text)
 - Access logging via `onResponse` hook — `info` for 2xx/3xx, `error` for 4xx/5xx
-- Default plugin set: CORS, compression, ETag, Helmet CSP, EJS views, and static files
+- Default plugin set: accepts, CORS, compression, ETag, Helmet CSP, EJS views, static files, Swagger, and Swagger UI
+- Optional Keycloak-backed JWT authentication for the default `/api/` routes
 - Returns a `FastifyInstance` for graceful shutdown via `SIGINT`/`SIGTERM`
 - Biome for linting and formatting
 - Built-in Node.js test runner
@@ -35,7 +36,7 @@ import pkg from "./package.json" with { type: "json" }
 
 const logger = await getConsoleLogger(pkg.name, "info")
 
-main(pkg.name, logger, false, () => {
+main(pkg.name, logger, async () => {
     const locals = { pkg }
     const plugins = defaultPlugins({ locals })
     const routes = defaultRoutes()
@@ -63,7 +64,50 @@ The `defaultPlugins` function accepts an optional `baseDir` to resolve the `src/
 `import.meta.dirname`):
 
 ```ts
-const plugins = defaultPlugins({ locals, baseDir: import.meta.dirname });
+const plugins = defaultPlugins({ locals, baseDir: import.meta.dirname })
+```
+
+### Keycloak authentication
+
+To protect routes with Keycloak JWT authentication, set `API_AUTH_PATHS` to a comma-separated list of
+[picomatch](https://github.com/micromatch/picomatch) glob patterns and provide the Keycloak connection variables. The
+server verifies bearer tokens against the realm's JWKS endpoint; public keys are cached and rotated automatically.
+
+```ts
+import { createKeycloakVerifier, type KeycloakAuthConfig } from "@darthcav/ts-http-server"
+
+const keycloakAuth: KeycloakAuthConfig = {
+    url: process.env["KEYCLOAK_URL"] ?? "",
+    realm: process.env["KEYCLOAK_REALM"] ?? "",
+    clientId: process.env["KEYCLOAK_CLIENT_ID"] ?? "",
+    clientSecret: process.env["KEYCLOAK_CLIENT_SECRET"] ?? "",
+}
+
+const verifyToken = createKeycloakVerifier(keycloakAuth)
+const locals = {
+    pkg,
+    authPaths: ["/api/**"],
+    authRealm: keycloakAuth.realm,   // used in WWW-Authenticate challenge
+}
+const plugins = defaultPlugins({ locals, keycloakAuth })   // marks /api/ as protected in OpenAPI
+const routes = defaultRoutes()
+
+const fastify = launcher({ logger, locals, plugins, routes, verifyToken })
+```
+
+When `locals.authPaths` is set, every request whose URL matches one of the glob patterns must carry
+`Authorization: Bearer <token>`. Missing or invalid tokens receive `401 Unauthorized` with a
+`WWW-Authenticate: Bearer realm="<authRealm>"` challenge (defaults to `"api"` when `authRealm` is not set). When
+`authPaths` is `undefined` (the default), all routes are public regardless of any token in the request.
+
+You can supply any custom `verifyToken` function instead of `createKeycloakVerifier` — it receives the raw
+`Authorization` header value and should return `true` to allow the request or `false` to reject it with 401:
+
+```ts
+const verifyToken = async (authorizationHeader: string | undefined): Promise<boolean> => {
+    return authorizationHeader === "Bearer my-static-token"
+}
+const fastify = launcher({ logger, locals, plugins, routes, verifyToken })
 ```
 
 ## Getting Started
@@ -100,6 +144,7 @@ src/
   start.ts          # Application entry point
   launcher.ts       # Application launcher (returns FastifyInstance)
   types.ts          # Shared type definitions
+  auth/             # Authentication utilities
   defaults/         # Default Fastify options, plugins, routes, and error handler
   hooks/            # Fastify hooks (preHandler, onResponse)
   __tests__/        # Test files
@@ -134,10 +179,15 @@ docker build \
 
 Runtime environment variables:
 
-| Variable                | Default     | Description                                |
-| ----------------------- | ----------- | ------------------------------------------ |
-| `HOST`                  | `localhost` | Bind address (use `0.0.0.0` in containers) |
-| `CONTAINER_EXPOSE_PORT` | `8888`      | Port the server listens on                 |
+| Variable                 | Default     | Description                                                           |
+| ------------------------ | ----------- | --------------------------------------------------------------------- |
+| `HOST`                   | `localhost` | Bind address (use `0.0.0.0` in containers)                            |
+| `CONTAINER_EXPOSE_PORT`  | `8888`      | Port the server listens on                                            |
+| `API_AUTH_PATHS`         | unset       | Comma-separated picomatch globs for protected routes (e.g. `/api/**`) |
+| `KEYCLOAK_URL`           | unset       | Keycloak server base URL                                              |
+| `KEYCLOAK_REALM`         | unset       | Keycloak realm name; also used as the `WWW-Authenticate` realm label  |
+| `KEYCLOAK_CLIENT_ID`     | unset       | Client ID registered in the realm                                     |
+| `KEYCLOAK_CLIENT_SECRET` | unset       | Client secret for the registered client                               |
 
 ### Run
 
@@ -170,7 +220,7 @@ services:
 
 [node-version]: https://img.shields.io/badge/node-%3E%3D25-orange.svg?style=flat-square
 [node-url]: https://nodejs.org
-[version-image]: https://img.shields.io/badge/version-0.5.1-blue.svg?style=flat-square
+[version-image]: https://img.shields.io/badge/version-0.6.0-blue.svg?style=flat-square
 [ci-badge]: https://github.com/darthcav/ts-http-server/actions/workflows/tests.yml/badge.svg
 [coverage-badge]: https://codecov.io/github/darthcav/ts-http-server/branch/dev/graph/badge.svg?token=K8Q4T4N9SG
 [coverage-url]: https://codecov.io/github/darthcav/ts-http-server

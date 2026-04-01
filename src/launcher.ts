@@ -3,6 +3,7 @@ import { notFound } from "@hapi/boom"
 import Fastify, { type FastifyInstance } from "fastify"
 import defaultErrorHandler from "./defaults/defaultErrorHandler.ts"
 import defaultFastifyOptions from "./defaults/defaultFastifyOptions.ts"
+import { createAuthPreHandler } from "./hooks/authPreHandler.ts"
 import { onResponse, preHandler } from "./index.ts"
 import type { LauncherOptions } from "./types.ts"
 
@@ -11,7 +12,7 @@ import type { LauncherOptions } from "./types.ts"
  *
  * Steps performed:
  * 1. Creates a `FastifyInstance` merging {@link defaultFastifyOptions} with `opts`.
- * 2. Decorates the instance with `locals` and any extra `decorators`.
+ * 2. Decorates the instance with `locals`, `verifyToken`, and any extra `decorators`.
  * 3. Registers all `plugins` and `routes`.
  * 4. Sets a `notFound` handler (throws Boom 404) and {@link defaultErrorHandler}.
  * 5. Registers {@link preHandler} and {@link onResponse} hooks.
@@ -25,6 +26,7 @@ export default function launcher({
     plugins,
     routes,
     decorators,
+    verifyToken,
     opts,
     done,
 }: LauncherOptions): FastifyInstance {
@@ -37,6 +39,7 @@ export default function launcher({
     })
 
     fastify.decorate("locals", locals)
+    fastify.decorate("verifyToken", verifyToken ?? (async () => false))
 
     if (decorators instanceof Map) {
         for (const [key, value] of decorators) {
@@ -57,6 +60,13 @@ export default function launcher({
     })
 
     fastify.setErrorHandler(defaultErrorHandler)
+
+    if (locals.authPaths?.length) {
+        fastify.addHook(
+            "preHandler",
+            createAuthPreHandler(locals.authPaths, locals.authRealm),
+        )
+    }
 
     // TODO: Add hook for `onRequestAbort`
     fastify.addHook("preHandler", preHandler)

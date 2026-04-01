@@ -1,0 +1,150 @@
+openapi: 3.1.0
+
+##### Info
+info:
+  title: Basic API
+  description: |
+    Reference implementation of the HTTP server.
+  version: 0.6.0
+
+##### Servers
+servers:
+  - url: http://localhost:8888/
+    description: Local server
+
+##### Tags
+tags:
+  - name: index
+    description: Operations related to the root of the API
+
+##### Paths
+paths:
+  /api/:
+    summary: API index routes
+    get:
+      operationId: getApiIndex
+      summary: Returns a welcome message
+      tags:
+        - index
+      responses:
+        200:
+          description: Welcome message
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WelcomeMessage"
+    head:
+      operationId: headApiIndex
+      summary: Returns headers for the API index
+      tags:
+        - index
+      responses:
+        200:
+          description: Empty response with headers
+    delete:
+      operationId: deleteApiIndex
+      summary: Not allowed on the API index
+      tags:
+        - index
+      responses:
+        405:
+          description: Method not allowed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                405:
+                  $ref: "#/components/examples/http_405"
+    patch:
+      operationId: patchApiIndex
+      summary: Not allowed on the API index
+      tags:
+        - index
+      responses:
+        405:
+          description: Method not allowed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                405:
+                  $ref: "#/components/examples/http_405"
+    post:
+      operationId: postApiIndex
+      summary: Not allowed on the API index
+      tags:
+        - index
+      responses:
+        405:
+          description: Method not allowed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                405:
+                  $ref: "#/components/examples/http_405"
+    put:
+      operationId: putApiIndex
+      summary: Not allowed on the API index
+      tags:
+        - index
+      responses:
+        405:
+          description: Method not allowed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                405:
+                  $ref: "#/components/examples/http_405"
+
+##### Components
+components:
+  securitySchemes:
+    openIdConnect:
+      type: openIdConnect
+      # Placeholder — overridden at runtime by defaultPlugins when KEYCLOAK_* env vars are set
+      openIdConnectUrl: https://keycloak.example.com/realms/placeholder/.well-known/openid-configuration
+  schemas:
+    Error:
+      $ref: "schemas/Error.yaml"
+    WelcomeMessage:
+      type: object
+      required: [message]
+      properties:
+        message:
+          description: Welcome message text.
+          type: string
+  examples:
+    http_400:
+      value:
+        code: 400
+        message: Bad Request
+    http_401:
+      value:
+        code: 401
+        message: Unauthorized
+    http_403:
+      value:
+        code: 403
+        message: Forbidden
+    http_404:
+      value:
+        code: 404
+        message: Not Found
+    http_405:
+      value:
+        code: 405
+        message: Method Not Allowed
+    http_406:
+      value:
+        code: 406
+        message: Not Acceptable
+    http_500:
+      value:
+        code: 500
+        message: Internal Server Error

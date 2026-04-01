@@ -45,7 +45,7 @@ suite("defaultPlugins", () => {
         ok(plugins.has("@fastify/swagger-ui"))
     })
 
-    test("keeps /api/ public in OpenAPI when apiAuth is omitted", () => {
+    test("keeps /api/ public in OpenAPI when keycloakAuth is omitted", () => {
         const plugins = defaultPlugins({ locals })
         const document = getSwaggerDocument(plugins)
 
@@ -53,22 +53,43 @@ suite("defaultPlugins", () => {
         equal(document.security, undefined)
         equal(document.paths?.["/api/"]?.get?.security, undefined)
         equal(document.paths?.["/api/"]?.get?.responses?.["401"], undefined)
+        // The placeholder openIdConnect scheme defined in api.yaml is cleaned up
+        equal(
+            document.components?.securitySchemes?.["openIdConnect"],
+            undefined,
+        )
     })
 
-    test("marks /api/ as protected in OpenAPI when apiAuth is enabled", () => {
+    test("marks /api/ as OpenID Connect–protected in OpenAPI when keycloakAuth is provided", () => {
         const plugins = defaultPlugins({
             locals,
-            apiAuth: { bearerToken: "secret" },
+            keycloakAuth: {
+                url: "https://auth.example.com",
+                realm: "test-realm",
+                clientId: "test-client",
+                clientSecret: "test-secret",
+            },
         })
         const document = getSwaggerDocument(plugins)
 
         ok(document)
         equal(Array.isArray(document.security), true)
         equal(
-            document.paths?.["/api/"]?.get?.security?.[0]?.["bearerAuth"]
+            document.paths?.["/api/"]?.get?.security?.[0]?.["openIdConnect"]
                 ?.length,
             0,
         )
         ok(document.paths?.["/api/"]?.get?.responses?.["401"])
+
+        const scheme = document.components?.securitySchemes?.[
+            "openIdConnect"
+        ] as { type: string; openIdConnectUrl: string } | undefined
+        ok(scheme)
+        equal(scheme.type, "openIdConnect")
+        ok(
+            scheme.openIdConnectUrl.includes(
+                "https://auth.example.com/realms/test-realm",
+            ),
+        )
     })
 })

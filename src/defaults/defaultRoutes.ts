@@ -2,29 +2,28 @@ import { methodNotAllowed, notAcceptable, unauthorized } from "@hapi/boom"
 import type { FastifyReply, FastifyRequest, RouteOptions } from "fastify"
 import type { DefaultRoutesOptions } from "../types.ts"
 
-function createApiAuthPreHandler(
-    apiAuth: NonNullable<DefaultRoutesOptions["apiAuth"]>,
-) {
-    return async function apiAuthPreHandler(
-        request: FastifyRequest,
-        reply: FastifyReply,
-    ): Promise<void> {
-        const authorizationHeader = request.headers.authorization
-        const isAuthorized =
-            "validateAuthorization" in apiAuth
-                ? await apiAuth.validateAuthorization(
-                      authorizationHeader,
-                      request,
-                  )
-                : authorizationHeader === `Bearer ${apiAuth.bearerToken}`
+/**
+ * Pre-handler that enforces bearer-token authentication on a route.
+ *
+ * Authentication is only checked when `request.server.locals.authRequired`
+ * is `true`; otherwise the request passes through unconditionally. When
+ * enforced, the request is validated using the `verifyToken` decorator
+ * registered on the Fastify instance.
+ */
+async function apiAuthPreHandler(
+    request: FastifyRequest,
+    reply: FastifyReply,
+): Promise<void> {
+    if (!request.server.locals.authRequired) {
+        return
+    }
 
-        if (!isAuthorized) {
-            reply.header(
-                "www-authenticate",
-                `Bearer realm="${apiAuth.realm ?? "api"}"`,
-            )
-            throw unauthorized("Missing or invalid bearer token")
-        }
+    const isAuthorized = await request.server.verifyToken(
+        request.headers.authorization,
+    )
+    if (!isAuthorized) {
+        reply.header("www-authenticate", 'Bearer realm="api"')
+        throw unauthorized("Missing or invalid bearer token")
     }
 }
 
@@ -34,16 +33,18 @@ function createApiAuthPreHandler(
  * Registers:
  * - `GET /` — renders `index.ejs` for `text/html`, throws 406 otherwise.
  * - `DELETE|PATCH|POST|PUT|OPTIONS /` — responds with 405 Method Not Allowed.
+ * - `GET /api/` — returns a JSON welcome message; bearer-token protected
+ *   when `locals.authRequired` is `true`.
+ * - `DELETE|PATCH|POST|PUT /api/` — responds with 405 Method Not Allowed;
+ *   also bearer-token protected when `locals.authRequired` is `true`.
  *
- * When `opts.apiAuth` is provided, the default `/api/` routes require a bearer
- * token and respond with `401 Unauthorized` plus `WWW-Authenticate: Bearer`
- * when the request does not satisfy the configured validator.
+ * Authentication is evaluated at request time: the pre-handler reads
+ * `request.server.locals.authRequired` and delegates token verification to
+ * the `verifyToken` decorator on the Fastify instance.
  */
 export default function defaultRoutes(
-    opts: DefaultRoutesOptions = {},
+    _opts: DefaultRoutesOptions = {},
 ): Map<string, RouteOptions> {
-    const { apiAuth } = opts
-    const apiAuthPreHandler = apiAuth ? createApiAuthPreHandler(apiAuth) : null
     const routes = new Map<string, RouteOptions>()
 
     routes.set("INDEX", {
@@ -71,10 +72,11 @@ export default function defaultRoutes(
             throw methodNotAllowed()
         },
     })
-    const apiIndexRoute: RouteOptions = {
+    routes.set("API_INDEX", {
         method: "GET",
         url: "/api/",
         exposeHeadRoute: true,
+        preHandler: apiAuthPreHandler,
         handler: async (request, reply) => {
             const { locals } = request.server
             const accept = request.accepts()
@@ -87,24 +89,16 @@ export default function defaultRoutes(
                     throw notAcceptable()
             }
         },
-    }
-    if (apiAuthPreHandler) {
-        apiIndexRoute.preHandler = apiAuthPreHandler
-    }
-    routes.set("API_INDEX", apiIndexRoute)
-
-    const apiIndex405Route: RouteOptions = {
+    })
+    routes.set("API_INDEX_405", {
         method: ["DELETE", "PATCH", "POST", "PUT"],
         url: "/api/",
+        preHandler: apiAuthPreHandler,
         handler: async (_request, reply) => {
             reply.header("allow", "GET, HEAD")
             throw methodNotAllowed()
         },
-    }
-    if (apiAuthPreHandler) {
-        apiIndex405Route.preHandler = apiAuthPreHandler
-    }
-    routes.set("API_INDEX_405", apiIndex405Route)
+    })
 
     return routes
 }

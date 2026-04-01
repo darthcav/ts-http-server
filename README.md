@@ -13,7 +13,7 @@ A TypeScript wrapper HTTP server for Node.js >= 25 based upon [Fastify](https://
 - Content negotiation for error responses (HTML / JSON / plain-text)
 - Access logging via `onResponse` hook — `info` for 2xx/3xx, `error` for 4xx/5xx
 - Default plugin set: accepts, CORS, compression, ETag, Helmet CSP, EJS views, static files, Swagger, and Swagger UI
-- Optional bearer-token authentication for the default `/api/` routes
+- Optional Keycloak-backed JWT authentication for the default `/api/` routes
 - Returns a `FastifyInstance` for graceful shutdown via `SIGINT`/`SIGTERM`
 - Biome for linting and formatting
 - Built-in Node.js test runner
@@ -38,11 +38,8 @@ const logger = await getConsoleLogger(pkg.name, "info")
 
 main(pkg.name, logger, async () => {
     const locals = { pkg }
-    const apiAuth = process.env["API_BEARER_TOKEN"]
-        ? { bearerToken: process.env["API_BEARER_TOKEN"] }
-        : undefined
-    const plugins = defaultPlugins({ locals, apiAuth })
-    const routes = defaultRoutes({ apiAuth })
+    const plugins = defaultPlugins({ locals })
+    const routes = defaultRoutes()
 
     const fastify = launcher({ logger, locals, plugins, routes })
 
@@ -67,45 +64,46 @@ The `defaultPlugins` function accepts an optional `baseDir` to resolve the `src/
 `import.meta.dirname`):
 
 ```ts
-const plugins = defaultPlugins({ locals, baseDir: import.meta.dirname });
+const plugins = defaultPlugins({ locals, baseDir: import.meta.dirname })
 ```
 
-To protect the default `/api/` routes, provide `apiAuth` when building the default plugins and routes:
+### Keycloak authentication
+
+To protect the default `/api/` routes with Keycloak JWT authentication, set `API_AUTH_REQUIRED=true` and provide the
+Keycloak connection variables. The server verifies bearer tokens against the realm's JWKS endpoint; public keys are
+cached and rotated automatically.
 
 ```ts
-const apiAuth = { bearerToken: process.env["API_BEARER_TOKEN"] ?? "change-me" };
-const plugins = defaultPlugins({ locals, apiAuth });
-const routes = defaultRoutes({ apiAuth });
-```
+import { createKeycloakVerifier, type KeycloakAuthConfig } from "@darthcav/ts-http-server"
 
-When `apiAuth` is enabled, the default `/api/` routes require `Authorization: Bearer <token>` and the generated Swagger
-document marks those endpoints as bearer-protected. When omitted, the default `/api/` routes remain public and Swagger
-documents them as public too.
-
-If you need to delegate authentication to JWT verification or another backend, provide a custom validator instead of a
-static token:
-
-```ts
-const apiAuth = {
-    realm: "example-api",
-    validateAuthorization: async (authorizationHeader) => {
-        if (!authorizationHeader?.startsWith("Bearer ")) {
-            return false
-        }
-
-        const token = authorizationHeader.slice("Bearer ".length)
-
-        // Replace this with your real JWT or backend verification.
-        return token === "trusted-token"
-    },
+const keycloakAuth: KeycloakAuthConfig = {
+    url: process.env["KEYCLOAK_URL"] ?? "",
+    realm: process.env["KEYCLOAK_REALM"] ?? "",
+    clientId: process.env["KEYCLOAK_CLIENT_ID"] ?? "",
+    clientSecret: process.env["KEYCLOAK_CLIENT_SECRET"] ?? "",
 }
 
-const plugins = defaultPlugins({ locals, apiAuth })
-const routes = defaultRoutes({ apiAuth })
+const verifyToken = createKeycloakVerifier(keycloakAuth)
+const locals = { pkg, authRequired: true }
+const plugins = defaultPlugins({ locals, keycloakAuth })   // marks /api/ as protected in OpenAPI
+const routes = defaultRoutes()
+
+const fastify = launcher({ logger, locals, plugins, routes, verifyToken })
 ```
 
-The validator receives the raw `Authorization` header and should return `true` to allow the request or `false` to
-trigger the default `401 Unauthorized` response. It can also throw if you need to surface a custom auth error.
+When `locals.authRequired` is `true`, every request to `/api/` must carry `Authorization: Bearer <token>`. Missing or
+invalid tokens receive `401 Unauthorized` with a `WWW-Authenticate: Bearer realm="api"` challenge. When `authRequired`
+is `false` (the default), all routes are public regardless of any token in the request.
+
+You can supply any custom `verifyToken` function instead of `createKeycloakVerifier` — it receives the raw
+`Authorization` header value and should return `true` to allow the request or `false` to reject it with 401:
+
+```ts
+const verifyToken = async (authorizationHeader: string | undefined): Promise<boolean> => {
+    return authorizationHeader === "Bearer my-static-token"
+}
+const fastify = launcher({ logger, locals, plugins, routes, verifyToken })
+```
 
 ## Getting Started
 
@@ -141,6 +139,7 @@ src/
   start.ts          # Application entry point
   launcher.ts       # Application launcher (returns FastifyInstance)
   types.ts          # Shared type definitions
+  auth/             # Authentication utilities
   defaults/         # Default Fastify options, plugins, routes, and error handler
   hooks/            # Fastify hooks (preHandler, onResponse)
   __tests__/        # Test files
@@ -175,12 +174,15 @@ docker build \
 
 Runtime environment variables:
 
-| Variable                | Default     | Description                                                |
-| ----------------------- | ----------- | ---------------------------------------------------------- |
-| `HOST`                  | `localhost` | Bind address (use `0.0.0.0` in containers)                 |
-| `CONTAINER_EXPOSE_PORT` | `8888`      | Port the server listens on                                 |
-| `API_BEARER_TOKEN`      | unset       | Enables bearer auth on the default `/api/` routes when set |
-| `API_AUTH_REALM`        | `api`       | Realm used in the bearer challenge response                |
+| Variable                 | Default     | Description                                         |
+| ------------------------ | ----------- | --------------------------------------------------- |
+| `HOST`                   | `localhost` | Bind address (use `0.0.0.0` in containers)          |
+| `CONTAINER_EXPOSE_PORT`  | `8888`      | Port the server listens on                          |
+| `API_AUTH_REQUIRED`      | `false`     | Set to `true` to enforce JWT auth on `/api/` routes |
+| `KEYCLOAK_URL`           | unset       | Keycloak server base URL                            |
+| `KEYCLOAK_REALM`         | unset       | Keycloak realm name                                 |
+| `KEYCLOAK_CLIENT_ID`     | unset       | Client ID registered in the realm                   |
+| `KEYCLOAK_CLIENT_SECRET` | unset       | Client secret for the registered client             |
 
 ### Run
 

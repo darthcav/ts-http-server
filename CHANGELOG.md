@@ -5,6 +5,42 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Changed
+
+- `src/types.ts`: replaced `ApiAuthConfig` / `ApiAuthValidator` with `KeycloakAuthConfig` and `TokenVerifier`; added
+  `authRequired?: boolean` to `LauncherLocals`; added `verifyToken?: TokenVerifier` to `LauncherOptions`; extended the
+  `FastifyInstance` augmentation with a `verifyToken: TokenVerifier` decorator
+- `src/defaults/defaultRoutes.ts`: auth pre-handler is now always attached to `/api/` routes and reads
+  `request.server.locals.authRequired` at request time instead of being conditionally wired at route-map build time;
+  removed the `createApiAuthPreHandler` factory; `DefaultRoutesOptions` no longer carries auth configuration
+- `src/defaults/defaultPlugins.ts`: `configureApiDocumentAuth` now expects `KeycloakAuthConfig` and generates an
+  `openIdConnect` security scheme with the realm's discovery URL instead of a static `bearerAuth` scheme;
+  `DefaultPluginsOptions.apiAuth` replaced with `DefaultPluginsOptions.keycloakAuth`
+- `src/launcher.ts`: registers `verifyToken` as a Fastify decorator alongside `locals`; falls back to
+  `async () => false` when not provided
+- `src/start.ts`: reads `API_AUTH_REQUIRED`, `KEYCLOAK_URL`, `KEYCLOAK_REALM`, `KEYCLOAK_CLIENT_ID`,
+  `KEYCLOAK_CLIENT_SECRET` env vars; removed `API_BEARER_TOKEN` and `API_AUTH_REALM`
+- `src/openapi/api.yaml`: removed static `bearerAuth` security scheme (now injected dynamically by `defaultPlugins`)
+- `.env.example`: replaced `API_BEARER_TOKEN` / `API_AUTH_REALM` with the five new Keycloak variables
+- `README.md`: updated usage examples, feature list, and env-var table to reflect Keycloak auth
+
+### Added
+
+- `src/auth/keycloak.ts`: `createKeycloakVerifier(config)` — factory that creates a `TokenVerifier` backed by the
+  Keycloak realm's JWKS endpoint; keys are fetched lazily and cached with automatic rotation via `jose`
+- `jose` production dependency for JWKS fetching and JWT verification
+
+### Tests
+
+- `src/__tests__/keycloak.test.ts`: new unit-test suite for `createKeycloakVerifier` using a live mock JWKS server and
+  real RS256 key pair; covers undefined header, non-Bearer header, valid JWT, wrong issuer, expired JWT, malformed
+  token, and trailing-slash URL normalisation
+- `src/__tests__/defaultRoutes.test.ts`: replaced static-bearer-token and custom-validator suites with
+  `authRequired=true + mock verifyToken` and `authRequired=false` suites
+- `src/__tests__/defaultPlugins.test.ts`: updated auth assertion to check `openIdConnect` scheme and discovery URL
+
 ## [0.6.0] - 2026-04-01
 
 ### Added

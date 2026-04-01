@@ -1,34 +1,56 @@
 import process, { env } from "node:process"
 import { getConsoleLogger, main } from "@darthcav/ts-utils"
 import pkg from "../package.json" with { type: "json" }
+import { createKeycloakVerifier } from "./auth/keycloak.ts"
 import {
-    type ApiAuthConfig,
     defaultPlugins,
     defaultRoutes,
+    type KeycloakAuthConfig,
     launcher,
 } from "./index.ts"
 
 const logger = await getConsoleLogger(pkg.name, "info")
 
 main(pkg.name, logger, async () => {
-    const apiBearerToken = env["API_BEARER_TOKEN"]?.trim()
-    const apiAuth: ApiAuthConfig | undefined = apiBearerToken
-        ? {
-              bearerToken: apiBearerToken,
-              realm: env["API_AUTH_REALM"]?.trim() || "api",
-          }
-        : undefined
+    const authRequired =
+        env["API_AUTH_REQUIRED"]?.trim().toLowerCase() === "true"
+
+    const keycloakUrl = env["KEYCLOAK_URL"]?.trim()
+    const keycloakRealm = env["KEYCLOAK_REALM"]?.trim()
+    const keycloakClientId = env["KEYCLOAK_CLIENT_ID"]?.trim()
+    const keycloakClientSecret = env["KEYCLOAK_CLIENT_SECRET"]?.trim()
+
+    const keycloakAuth: KeycloakAuthConfig | undefined =
+        keycloakUrl && keycloakRealm && keycloakClientId && keycloakClientSecret
+            ? {
+                  url: keycloakUrl,
+                  realm: keycloakRealm,
+                  clientId: keycloakClientId,
+                  clientSecret: keycloakClientSecret,
+              }
+            : undefined
+
     const locals = {
         pkg,
         host: env["HOST"] ?? "localhost",
         port: Number(env["CONTAINER_EXPOSE_PORT"]) || 8888,
+        authRequired,
     }
-    const plugins = apiAuth
-        ? defaultPlugins({ locals, apiAuth })
+    const plugins = keycloakAuth
+        ? defaultPlugins({ locals, keycloakAuth })
         : defaultPlugins({ locals })
-    const routes = apiAuth ? defaultRoutes({ apiAuth }) : defaultRoutes()
+    const routes = defaultRoutes()
 
-    const fastify = launcher({ logger, locals, plugins, routes })
+    const fastify = keycloakAuth
+        ? launcher({
+              logger,
+              locals,
+              plugins,
+              routes,
+              verifyToken: createKeycloakVerifier(keycloakAuth),
+          })
+        : launcher({ logger, locals, plugins, routes })
+
     for (const signal of ["SIGINT", "SIGTERM"] as const) {
         process.on(signal, async (signal) =>
             fastify

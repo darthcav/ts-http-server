@@ -11,7 +11,7 @@ import type { LauncherOptions } from "./types.ts"
  *
  * Steps performed:
  * 1. Creates a `FastifyInstance` merging {@link defaultFastifyOptions} with `opts`.
- * 2. Decorates the instance with `locals` and any extra `decorators`.
+ * 2. Decorates the instance with `locals`, `verifyToken`, and any extra `decorators`.
  * 3. Registers all `plugins` and `routes`.
  * 4. Sets a `notFound` handler (throws Boom 404) and {@link defaultErrorHandler}.
  * 5. Registers {@link preHandler} and {@link onResponse} hooks.
@@ -25,6 +25,7 @@ export default function launcher({
     plugins,
     routes,
     decorators,
+    verifyToken,
     opts,
     done,
 }: LauncherOptions): FastifyInstance {
@@ -37,6 +38,7 @@ export default function launcher({
     })
 
     fastify.decorate("locals", locals)
+    fastify.decorate("verifyToken", verifyToken ?? (async () => false))
 
     if (decorators instanceof Map) {
         for (const [key, value] of decorators) {

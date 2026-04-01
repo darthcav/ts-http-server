@@ -50,12 +50,17 @@
 - `src/defaults/defaultPlugins.ts` defines the default plugin stack: `@fastify/accepts`, `compress`, `cors`, `etag`,
   `helmet`, `view`, `static`, `swagger`, and `swagger-ui`. It also loads `src/openapi/api.yaml`, inlines schema files
   from `src/openapi/schemas/`, serves Swagger UI at `/docs`, wires EJS templates from `src/views`, serves static assets
-  from `src/public`, and adds bearer-auth metadata to `/api/` only when optional `apiAuth` config is enabled.
+  from `src/public`, and injects an OpenID Connect security scheme into the OpenAPI document only when optional
+  `keycloakAuth` config is provided.
+- `src/auth/keycloak.ts` exports `createKeycloakVerifier(config)`, a factory that returns a `TokenVerifier` backed by
+  the Keycloak realm's JWKS endpoint. Keys are fetched lazily and cached via `jose`; token verification checks the
+  signature, expiry, and issuer claims.
 - `src/defaults/defaultRoutes.ts` defines the default home route behavior. `GET /` renders `index.ejs` only for HTML
   requests; other methods on `/` return `405`, and non-HTML `GET /` requests become `406`.
 - `src/defaults/defaultRoutes.ts` also defines the default API index at `GET /api/`, which only serves JSON, exposes a
-  `HEAD` route, returns `405` for unsupported mutating methods, and optionally enforces bearer auth when `apiAuth` is
-  configured.
+  `HEAD` route, and returns `405` for unsupported mutating methods. All `/api/` routes carry an `apiAuthPreHandler` that
+  checks `request.server.locals.authRequired` at request time and delegates to the `verifyToken` Fastify decorator. When
+  `authRequired` is false (the default), auth is skipped entirely.
 - `src/defaults/defaultErrorHandler.ts` is responsible for content negotiation on errors. It renders `_error.ejs` for
   HTML, returns JSON for API clients, and falls back to plain text otherwise.
 - `src/hooks/preHandler.ts` and `src/hooks/onResponse.ts` provide the request/access logging strategy. Fastify's
@@ -82,14 +87,16 @@
   resolves relative to the package source. Keep that in mind when changing path logic or tests.
 - `defaultPlugins()` currently parses `src/openapi/api.yaml` and inlines component schemas from `src/openapi/schemas/`.
   Keep the OpenAPI document, referenced schema files, runtime route behavior, and tests aligned.
-- `defaultPlugins()` and `defaultRoutes()` both accept optional `apiAuth` config. Keep those call sites aligned so the
-  generated OpenAPI document describes the same auth behavior the runtime enforces.
+- `defaultPlugins()` accepts optional `keycloakAuth` config to inject the OpenID Connect security scheme into the
+  OpenAPI document. `launcher()` accepts an optional `verifyToken` function registered as a Fastify decorator. Keep
+  these aligned so the generated OpenAPI document describes the same auth behavior the runtime enforces.
 - Error handling depends on the accepts/view plugins being available. If you customize plugin registration, make sure
   content negotiation and HTML error rendering still work.
 - Tests live under `src/__tests__/` and use Node's built-in `node:test` runner with `suite()` and `test()`, not
   Jest/Vitest-style APIs.
-- Existing HTTP tests start real servers on fixed ports (`19001`-`19003`) and wait briefly before requests instead of
-  using `fastify.inject()`. Match that style unless there is a strong reason to change it.
+- Existing HTTP tests start real servers on fixed ports (`19001`-`19005`) and wait briefly before requests instead of
+  using `fastify.inject()`. The Keycloak unit test uses a mock JWKS server on port `19010`. Match that style unless
+  there is a strong reason to change it.
 - `launcher()` starts listening before returning, but the returned `FastifyInstance` is handed back before the listen
   callback fires. When writing integration tests, continue waiting for readiness before issuing requests.
 - Avoid introducing assumptions that tests can bind random shared ports or run the current fixed-port suites in parallel
@@ -124,8 +131,8 @@
 - `src/defaultErrorHandler.ts` currently treats Boom detection with a double assertion (`as unknown as Boom`). If that
   file is modified, prefer introducing a small type guard rather than extending the assertion pattern.
 - `src/openapi/api.yaml` is the public baseline document. `defaultPlugins()` mutates the parsed document in memory to
-  add `/api/` bearer-auth metadata only when `apiAuth` is enabled, so avoid changing runtime auth behavior in just one
-  place.
+  inject an OpenID Connect security scheme only when `keycloakAuth` is provided, so avoid changing runtime auth behavior
+  in just one place.
 - `src/defaults/defaultPlugins.ts` currently inlines only top-level schema refs synchronously from
   `src/openapi/schemas/`. If OpenAPI complexity grows, prefer a more robust ref-resolution strategy instead of
   duplicating manual ref loading.

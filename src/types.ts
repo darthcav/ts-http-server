@@ -3,7 +3,6 @@ import type {
     FastifyPluginAsync,
     FastifyPluginCallback,
     FastifyPluginOptions,
-    FastifyRequest,
     FastifyServerOptions,
     RouteOptions,
 } from "fastify"
@@ -21,55 +20,28 @@ export type FSTPlugin = {
 }
 
 /**
- * Callback used to validate the `Authorization` header for default API routes.
+ * Configuration for Keycloak-backed JWT authentication.
+ */
+export type KeycloakAuthConfig = {
+    /** Keycloak server base URL, e.g. `https://auth.example.com`. */
+    url: string
+    /** Keycloak realm name. */
+    realm: string
+    /** Client ID registered in the realm; used as the expected audience. */
+    clientId: string
+    /** Client secret for the registered client. */
+    clientSecret: string
+}
+
+/**
+ * Async function that verifies a bearer token from the `Authorization` header.
  *
  * Return `true` to allow the request, `false` to reject it with the default
  * 401 response, or throw to surface a custom error.
  */
-export type ApiAuthValidator = (
+export type TokenVerifier = (
     authorizationHeader: string | undefined,
-    request: FastifyRequest,
-) => boolean | Promise<boolean>
-
-/**
- * Optional authentication configuration for the default `/api/` routes and
- * generated OpenAPI document.
- */
-export type ApiAuthConfig = {
-    /** Optional realm used in the `WWW-Authenticate` challenge header. */
-    realm?: string
-} & (
-    | {
-          /** Static bearer token accepted by the default API auth guard. */
-          bearerToken: string
-          validateAuthorization?: never
-      }
-    | {
-          /** Custom validator for the incoming `Authorization` header. */
-          validateAuthorization: ApiAuthValidator
-          bearerToken?: never
-      }
-)
-
-/**
- * Options accepted by the {@link defaultPlugins} function.
- */
-export type DefaultPluginsOptions = {
-    /** Application locals; `locals.pkg` is exposed as the default EJS context. */
-    locals: LauncherLocals
-    /** Optional base directory for resolving the `src/` folder; defaults to the parent of `import.meta.dirname`. */
-    baseDir?: string | null
-    /** Optional auth configuration used to mark the generated `/api/` OpenAPI operations as bearer-protected. */
-    apiAuth?: ApiAuthConfig
-}
-
-/**
- * Options accepted by the {@link defaultRoutes} function.
- */
-export type DefaultRoutesOptions = {
-    /** Optional auth configuration; when provided, `/api/` routes require a valid bearer token. */
-    apiAuth?: ApiAuthConfig
-}
+) => Promise<boolean>
 
 /**
  * Application locals decorated onto the Fastify instance and available
@@ -82,6 +54,11 @@ export type LauncherLocals = {
     host?: string
     /** Port the server will listen on. */
     port?: number
+    /**
+     * When `true`, the default `/api/` routes enforce bearer-token
+     * authentication via the `verifyToken` Fastify decorator.
+     */
+    authRequired?: boolean
     /** Any additional application-specific locals. */
     [key: string]: unknown
 }
@@ -100,6 +77,13 @@ export type LauncherOptions = {
     routes: Map<string, RouteOptions>
     /** Map of named decorators to add to the Fastify instance. */
     decorators?: Map<string, unknown>
+    /**
+     * Token verifier registered as the `verifyToken` Fastify decorator.
+     *
+     * When omitted and `locals.authRequired` is `true`, all authenticated
+     * routes will respond with `401 Unauthorized`.
+     */
+    verifyToken?: TokenVerifier
     /** Optional Fastify server options (merged over {@link defaultFastifyOptions}). */
     opts?: FastifyServerOptions
     /** Optional callback invoked once the server is listening. */
@@ -107,15 +91,35 @@ export type LauncherOptions = {
 }
 
 /**
- * Fastify module augmentation that exposes {@link LauncherLocals} as a
- * first-class decorator on every `FastifyInstance`.
+ * Options accepted by the {@link defaultPlugins} function.
+ */
+export type DefaultPluginsOptions = {
+    /** Application locals; `locals.pkg` is exposed as the default EJS context. */
+    locals: LauncherLocals
+    /** Optional base directory for resolving the `src/` folder; defaults to the parent of `import.meta.dirname`. */
+    baseDir?: string | null
+    /** Optional Keycloak configuration used to mark the generated `/api/` OpenAPI operations as OpenID Connect–protected. */
+    keycloakAuth?: KeycloakAuthConfig
+}
+
+/**
+ * Options accepted by the {@link defaultRoutes} function.
  *
- * Registered in {@link launcher} via `fastify.decorate("locals", locals)`,
- * this augmentation makes `request.server.locals` fully typed without
- * requiring manual casts or `getDecorator` calls in route handlers.
+ * Auth is controlled at runtime via the `authRequired` local and the
+ * `verifyToken` decorator registered on the Fastify instance.
+ */
+// biome-ignore lint/complexity/noBannedTypes: intentionally empty; reserved for future options
+export type DefaultRoutesOptions = {}
+
+/**
+ * Fastify module augmentation that exposes {@link LauncherLocals} and the
+ * {@link TokenVerifier} as first-class decorators on every `FastifyInstance`.
+ *
+ * Both are registered in {@link launcher} via `fastify.decorate(...)`.
  */
 declare module "fastify" {
     interface FastifyInstance {
         locals: LauncherLocals
+        verifyToken: TokenVerifier
     }
 }

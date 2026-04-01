@@ -12,11 +12,15 @@ import FastifyView from "@fastify/view"
 import Ejs from "ejs"
 import type { OpenAPIV3_1 } from "openapi-types"
 import { parse } from "yaml"
-import type { DefaultPluginsOptions, FSTPlugin } from "../types.ts"
+import type {
+    DefaultPluginsOptions,
+    FSTPlugin,
+    KeycloakAuthConfig,
+} from "../types.ts"
 
 function configureApiDocumentAuth(
     apiDoc: OpenAPIV3_1.Document,
-    apiAuth?: DefaultPluginsOptions["apiAuth"],
+    keycloakAuth?: KeycloakAuthConfig,
 ): void {
     if (!apiDoc.paths) {
         return
@@ -27,8 +31,19 @@ function configureApiDocumentAuth(
         return
     }
 
-    if (apiAuth) {
-        apiDoc.security = [{ bearerAuth: [] }, {}]
+    if (keycloakAuth) {
+        const baseUrl = keycloakAuth.url.replace(/\/$/, "")
+        const openIdConnectUrl = `${baseUrl}/realms/${keycloakAuth.realm}/.well-known/openid-configuration`
+
+        apiDoc.components ??= {}
+        apiDoc.components.securitySchemes = {
+            openIdConnect: {
+                type: "openIdConnect",
+                openIdConnectUrl,
+            },
+        }
+        apiDoc.security = [{ openIdConnect: [] }]
+
         for (const operation of Object.values(apiPath)) {
             if (
                 !operation ||
@@ -38,7 +53,7 @@ function configureApiDocumentAuth(
                 continue
             }
 
-            operation.security = [{ bearerAuth: [] }]
+            operation.security = [{ openIdConnect: [] }]
             operation.responses ??= {}
             operation.responses["401"] = {
                 description: "Unauthorized",
@@ -56,6 +71,9 @@ function configureApiDocumentAuth(
     }
 
     delete apiDoc.security
+    if (apiDoc.components?.securitySchemes) {
+        delete apiDoc.components.securitySchemes["openIdConnect"]
+    }
     for (const operation of Object.values(apiPath)) {
         if (
             !operation ||
@@ -86,8 +104,8 @@ function configureApiDocumentAuth(
  *   default context for every EJS view.
  * @param opts.baseDir - Optional base directory for resolving the `src/`
  *   folder; defaults to the parent of `import.meta.dirname`.
- * @param opts.apiAuth - Optional auth configuration used to mark the generated
- *   `/api/` OpenAPI operations as bearer-protected.
+ * @param opts.keycloakAuth - Optional Keycloak configuration used to mark the
+ *   generated `/api/` OpenAPI operations as OpenID Connect–protected.
  * @returns A `Map` of plugin names to plugin entries, suitable for passing as
  *   the `plugins` field of `LauncherOptions`.
  */
@@ -118,7 +136,7 @@ export default function defaultPlugins(
             }
         }
     }
-    configureApiDocumentAuth(apiDoc, opts.apiAuth)
+    configureApiDocumentAuth(apiDoc, opts.keycloakAuth)
 
     plugins.set("@fastify/accepts", {
         plugin: FastifyAccepts,

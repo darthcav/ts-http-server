@@ -20,6 +20,7 @@ tags:
 ##### Paths
 paths:
   /api/:
+    summary: API index routes
     get:
       operationId: getApiIndex
       summary: Returns a welcome message
@@ -104,10 +105,10 @@ paths:
 ##### Components
 components:
   securitySchemes:
-    bearerAuth:
-      type: http
-      scheme: bearer
-      bearerFormat: JWT
+    openIdConnect:
+      type: openIdConnect
+      # Placeholder — overridden at runtime by defaultPlugins when KEYCLOAK_* env vars are set
+      openIdConnectUrl: https://keycloak.example.com/realms/placeholder/.well-known/openid-configuration
   schemas:
     Error:
       $ref: "schemas/Error.yaml"

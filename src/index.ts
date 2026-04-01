@@ -8,6 +8,7 @@ import defaultErrorHandler from "./defaults/defaultErrorHandler.ts"
 import defaultFastifyOptions from "./defaults/defaultFastifyOptions.ts"
 import defaultPlugins from "./defaults/defaultPlugins.ts"
 import defaultRoutes from "./defaults/defaultRoutes.ts"
+import { createAuthPreHandler } from "./hooks/authPreHandler.ts"
 import onResponse from "./hooks/onResponse.ts"
 import preHandler from "./hooks/preHandler.ts"
 import launcher from "./launcher.ts"
@@ -23,6 +24,7 @@ export type {
 } from "./types.ts"
 
 export {
+    createAuthPreHandler,
     defaultErrorHandler,
     defaultFastifyOptions,
     defaultPlugins,

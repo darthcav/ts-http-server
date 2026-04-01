@@ -12,8 +12,10 @@ import {
 const logger = await getConsoleLogger(pkg.name, "info")
 
 main(pkg.name, logger, async () => {
-    const authRequired =
-        env["API_AUTH_REQUIRED"]?.trim().toLowerCase() === "true"
+    const authPaths = env["API_AUTH_PATHS"]
+        ?.split(",")
+        .map((p) => p.trim())
+        .filter((p) => p.length > 0)
 
     const keycloakUrl = env["KEYCLOAK_URL"]?.trim()
     const keycloakRealm = env["KEYCLOAK_REALM"]?.trim()
@@ -34,7 +36,8 @@ main(pkg.name, logger, async () => {
         pkg,
         host: env["HOST"] ?? "localhost",
         port: Number(env["CONTAINER_EXPOSE_PORT"]) || 8888,
-        authRequired,
+        ...(authPaths?.length ? { authPaths } : {}),
+        ...(keycloakRealm ? { authRealm: keycloakRealm } : {}),
     }
     const plugins = keycloakAuth
         ? defaultPlugins({ locals, keycloakAuth })

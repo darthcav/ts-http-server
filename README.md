@@ -69,9 +69,9 @@ const plugins = defaultPlugins({ locals, baseDir: import.meta.dirname })
 
 ### Keycloak authentication
 
-To protect the default `/api/` routes with Keycloak JWT authentication, set `API_AUTH_REQUIRED=true` and provide the
-Keycloak connection variables. The server verifies bearer tokens against the realm's JWKS endpoint; public keys are
-cached and rotated automatically.
+To protect routes with Keycloak JWT authentication, set `API_AUTH_PATHS` to a comma-separated list of
+[picomatch](https://github.com/micromatch/picomatch) glob patterns and provide the Keycloak connection variables. The
+server verifies bearer tokens against the realm's JWKS endpoint; public keys are cached and rotated automatically.
 
 ```ts
 import { createKeycloakVerifier, type KeycloakAuthConfig } from "@darthcav/ts-http-server"
@@ -84,16 +84,21 @@ const keycloakAuth: KeycloakAuthConfig = {
 }
 
 const verifyToken = createKeycloakVerifier(keycloakAuth)
-const locals = { pkg, authRequired: true }
+const locals = {
+    pkg,
+    authPaths: ["/api/**"],
+    authRealm: keycloakAuth.realm,   // used in WWW-Authenticate challenge
+}
 const plugins = defaultPlugins({ locals, keycloakAuth })   // marks /api/ as protected in OpenAPI
 const routes = defaultRoutes()
 
 const fastify = launcher({ logger, locals, plugins, routes, verifyToken })
 ```
 
-When `locals.authRequired` is `true`, every request to `/api/` must carry `Authorization: Bearer <token>`. Missing or
-invalid tokens receive `401 Unauthorized` with a `WWW-Authenticate: Bearer realm="api"` challenge. When `authRequired`
-is `false` (the default), all routes are public regardless of any token in the request.
+When `locals.authPaths` is set, every request whose URL matches one of the glob patterns must carry
+`Authorization: Bearer <token>`. Missing or invalid tokens receive `401 Unauthorized` with a
+`WWW-Authenticate: Bearer realm="<authRealm>"` challenge (defaults to `"api"` when `authRealm` is not set). When
+`authPaths` is `undefined` (the default), all routes are public regardless of any token in the request.
 
 You can supply any custom `verifyToken` function instead of `createKeycloakVerifier` — it receives the raw
 `Authorization` header value and should return `true` to allow the request or `false` to reject it with 401:
@@ -174,15 +179,15 @@ docker build \
 
 Runtime environment variables:
 
-| Variable                 | Default     | Description                                         |
-| ------------------------ | ----------- | --------------------------------------------------- |
-| `HOST`                   | `localhost` | Bind address (use `0.0.0.0` in containers)          |
-| `CONTAINER_EXPOSE_PORT`  | `8888`      | Port the server listens on                          |
-| `API_AUTH_REQUIRED`      | `false`     | Set to `true` to enforce JWT auth on `/api/` routes |
-| `KEYCLOAK_URL`           | unset       | Keycloak server base URL                            |
-| `KEYCLOAK_REALM`         | unset       | Keycloak realm name                                 |
-| `KEYCLOAK_CLIENT_ID`     | unset       | Client ID registered in the realm                   |
-| `KEYCLOAK_CLIENT_SECRET` | unset       | Client secret for the registered client             |
+| Variable                 | Default     | Description                                                           |
+| ------------------------ | ----------- | --------------------------------------------------------------------- |
+| `HOST`                   | `localhost` | Bind address (use `0.0.0.0` in containers)                            |
+| `CONTAINER_EXPOSE_PORT`  | `8888`      | Port the server listens on                                            |
+| `API_AUTH_PATHS`         | unset       | Comma-separated picomatch globs for protected routes (e.g. `/api/**`) |
+| `KEYCLOAK_URL`           | unset       | Keycloak server base URL                                              |
+| `KEYCLOAK_REALM`         | unset       | Keycloak realm name; also used as the `WWW-Authenticate` realm label  |
+| `KEYCLOAK_CLIENT_ID`     | unset       | Client ID registered in the realm                                     |
+| `KEYCLOAK_CLIENT_SECRET` | unset       | Client secret for the registered client                               |
 
 ### Run
 

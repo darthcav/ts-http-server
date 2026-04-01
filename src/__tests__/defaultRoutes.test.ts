@@ -250,7 +250,7 @@ suite("defaultRoutes [HTTP]", () => {
 })
 
 suite(
-    "defaultRoutes [HTTP] with authRequired=true and mock verifyToken",
+    "defaultRoutes [HTTP] with authPaths=['/api/**'] and mock verifyToken",
     () => {
         const noop = (): void => {}
         const testLogger = {
@@ -283,7 +283,7 @@ suite(
 
             server = launcher({
                 logger: testLogger,
-                locals: { ...locals, port, authRequired: true },
+                locals: { ...locals, port, authPaths: ["/api/**"] },
                 plugins,
                 routes: defaultRoutes(),
                 verifyToken,
@@ -345,10 +345,71 @@ suite(
             equal(res.status, 405)
             equal(res.headers.get("allow"), "GET, HEAD")
         })
+
+        test("GET / without Authorization → 200 (non-protected path)", async () => {
+            const res = await fetch(`${base}/`, {
+                headers: { accept: "text/html" },
+            })
+            equal(res.status, 200)
+        })
     },
 )
 
-suite("defaultRoutes [HTTP] with authRequired=false (auth bypass)", () => {
+suite("defaultRoutes [HTTP] with authPaths and custom authRealm", () => {
+    const noop = (): void => {}
+    const testLogger = {
+        category: ["test"],
+        info: noop,
+        error: noop,
+        warn: noop,
+        debug: noop,
+        getChild: () => testLogger,
+    } as unknown as Logger
+
+    const locals = {
+        pkg: {
+            name: "ts-http-server",
+            version: "0.0.0",
+            description: "Test",
+        },
+    }
+
+    const port = 19006
+    const base = `http://localhost:${port}`
+    let server: FastifyInstance
+
+    before(async () => {
+        const plugins = defaultPlugins({ locals })
+        server = launcher({
+            logger: testLogger,
+            locals: {
+                ...locals,
+                port,
+                authPaths: ["/api/**"],
+                authRealm: "my-realm",
+            },
+            plugins,
+            routes: defaultRoutes(),
+            opts: { disableRequestLogging: true },
+        })
+        await setTimeout(1000)
+    })
+
+    after(async () => {
+        await setTimeout(500)
+        await server.close()
+    })
+
+    test("GET /api/ without Authorization → 401 with custom realm", async () => {
+        const res = await fetch(`${base}/api/`, {
+            headers: { accept: "application/json" },
+        })
+        equal(res.status, 401)
+        equal(res.headers.get("www-authenticate"), 'Bearer realm="my-realm"')
+    })
+})
+
+suite("defaultRoutes [HTTP] with no authPaths (auth disabled)", () => {
     const noop = (): void => {}
     const testLogger = {
         category: ["test"],
@@ -369,12 +430,12 @@ suite("defaultRoutes [HTTP] with authRequired=false (auth bypass)", () => {
 
     before(async () => {
         const plugins = defaultPlugins({ locals })
-        // verifyToken always returns false — but authRequired=false means it is never called
+        // verifyToken always returns false — but authPaths is unset so it is never called
         const verifyToken = async (): Promise<boolean> => false
 
         server = launcher({
             logger: testLogger,
-            locals: { ...locals, port, authRequired: false },
+            locals: { ...locals, port },
             plugins,
             routes: defaultRoutes(),
             verifyToken,

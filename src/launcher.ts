@@ -3,6 +3,7 @@ import { notFound } from "@hapi/boom"
 import Fastify, { type FastifyInstance } from "fastify"
 import defaultErrorHandler from "./defaults/defaultErrorHandler.ts"
 import defaultFastifyOptions from "./defaults/defaultFastifyOptions.ts"
+import { createAuthPreHandler } from "./hooks/authPreHandler.ts"
 import { onResponse, preHandler } from "./index.ts"
 import type { LauncherOptions } from "./types.ts"
 
@@ -59,6 +60,13 @@ export default function launcher({
     })
 
     fastify.setErrorHandler(defaultErrorHandler)
+
+    if (locals.authPaths?.length) {
+        fastify.addHook(
+            "preHandler",
+            createAuthPreHandler(locals.authPaths, locals.authRealm),
+        )
+    }
 
     // TODO: Add hook for `onRequestAbort`
     fastify.addHook("preHandler", preHandler)

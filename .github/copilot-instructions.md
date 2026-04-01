@@ -40,7 +40,9 @@
   shutdown handlers.
 - `src/launcher.ts` is the composition root. It:
     - creates the Fastify instance by merging `defaultFastifyOptions(logger)` with caller overrides,
-    - decorates `fastify.locals` plus any extra decorators,
+    - decorates `fastify.locals` and `fastify.verifyToken` plus any extra decorators,
+    - conditionally registers a global `preHandler` auth hook via `createAuthPreHandler(locals.authPaths)` when
+      `authPaths` is non-empty,
     - registers plugins and routes from `Map` objects,
     - installs the default 404 handler and `defaultErrorHandler`,
     - adds the shared `preHandler` and `onResponse` hooks,
@@ -58,9 +60,13 @@
 - `src/defaults/defaultRoutes.ts` defines the default home route behavior. `GET /` renders `index.ejs` only for HTML
   requests; other methods on `/` return `405`, and non-HTML `GET /` requests become `406`.
 - `src/defaults/defaultRoutes.ts` also defines the default API index at `GET /api/`, which only serves JSON, exposes a
-  `HEAD` route, and returns `405` for unsupported mutating methods. All `/api/` routes carry an `apiAuthPreHandler` that
-  checks `request.server.locals.authRequired` at request time and delegates to the `verifyToken` Fastify decorator. When
-  `authRequired` is false (the default), auth is skipped entirely.
+  `HEAD` route, and returns `405` for unsupported mutating methods. Routes carry no per-route auth logic; authentication
+  is enforced globally by the `preHandler` hook registered in `launcher()` when `locals.authPaths` is set.
+- `src/hooks/authPreHandler.ts` exports `createAuthPreHandler(authPaths, realm)`, a factory that compiles the given
+  picomatch glob patterns and returns a Fastify `preHandler` hook. For each request, `request.routeOptions.url` is
+  tested against the compiled matcher; non-matching routes pass through unconditionally. Matching routes delegate token
+  verification to the `verifyToken` Fastify decorator; on failure the `WWW-Authenticate: Bearer realm="<realm>"`
+  challenge header is set using the `realm` parameter (defaults to `"api"`).
 - `src/defaults/defaultErrorHandler.ts` is responsible for content negotiation on errors. It renders `_error.ejs` for
   HTML, returns JSON for API clients, and falls back to plain text otherwise.
 - `src/hooks/preHandler.ts` and `src/hooks/onResponse.ts` provide the request/access logging strategy. Fastify's
@@ -88,14 +94,17 @@
 - `defaultPlugins()` currently parses `src/openapi/api.yaml` and inlines component schemas from `src/openapi/schemas/`.
   Keep the OpenAPI document, referenced schema files, runtime route behavior, and tests aligned.
 - `defaultPlugins()` accepts optional `keycloakAuth` config to inject the OpenID Connect security scheme into the
-  OpenAPI document. `launcher()` accepts an optional `verifyToken` function registered as a Fastify decorator. Keep
-  these aligned so the generated OpenAPI document describes the same auth behavior the runtime enforces.
+  OpenAPI document. `launcher()` accepts an optional `verifyToken` function registered as a Fastify decorator, and
+  conditionally registers the auth `preHandler` hook when `locals.authPaths` is non-empty, passing `locals.authRealm` as
+  the `WWW-Authenticate` realm label. Keep these aligned so the generated OpenAPI document describes the same auth
+  behavior the runtime enforces.
 - Error handling depends on the accepts/view plugins being available. If you customize plugin registration, make sure
   content negotiation and HTML error rendering still work.
 - Tests live under `src/__tests__/` and use Node's built-in `node:test` runner with `suite()` and `test()`, not
   Jest/Vitest-style APIs.
 - Existing HTTP tests start real servers on fixed ports (`19001`-`19005`) and wait briefly before requests instead of
-  using `fastify.inject()`. The Keycloak unit test uses a mock JWKS server on port `19010`. Match that style unless
+  using `fastify.inject()`. The Keycloak unit test uses a mock JWKS server on port `19010`. The auth pre-handler is
+  tested via the `defaultRoutes` HTTP suite on port `19004` using `authPaths: ["/api/**"]`. Match that style unless
   there is a strong reason to change it.
 - `launcher()` starts listening before returning, but the returned `FastifyInstance` is handed back before the listen
   callback fires. When writing integration tests, continue waiting for readiness before issuing requests.

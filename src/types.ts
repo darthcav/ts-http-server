@@ -55,10 +55,18 @@ export type LauncherLocals = {
     /** Port the server will listen on. */
     port?: number
     /**
-     * When `true`, the default `/api/` routes enforce bearer-token
+     * Glob patterns (picomatch) for routes that require bearer-token
      * authentication via the `verifyToken` Fastify decorator.
+     * When `undefined` or empty, authentication is disabled.
+     *
+     * Example: `["/api/**"]`
      */
-    authRequired?: boolean
+    authPaths?: string[]
+    /**
+     * Protection-space label used in the `WWW-Authenticate` challenge (RFC 6750).
+     * Typically the Keycloak realm name. Defaults to `"api"` when omitted.
+     */
+    authRealm?: string
     /** Any additional application-specific locals. */
     [key: string]: unknown
 }
@@ -80,8 +88,8 @@ export type LauncherOptions = {
     /**
      * Token verifier registered as the `verifyToken` Fastify decorator.
      *
-     * When omitted and `locals.authRequired` is `true`, all authenticated
-     * routes will respond with `401 Unauthorized`.
+     * When omitted and `locals.authPaths` is set, all protected routes will
+     * respond with `401 Unauthorized`.
      */
     verifyToken?: TokenVerifier
     /** Optional Fastify server options (merged over {@link defaultFastifyOptions}). */

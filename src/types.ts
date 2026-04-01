@@ -103,15 +103,6 @@ export type DefaultPluginsOptions = {
 }
 
 /**
- * Options accepted by the {@link defaultRoutes} function.
- *
- * Auth is controlled at runtime via the `authRequired` local and the
- * `verifyToken` decorator registered on the Fastify instance.
- */
-// biome-ignore lint/complexity/noBannedTypes: intentionally empty; reserved for future options
-export type DefaultRoutesOptions = {}
-
-/**
  * Fastify module augmentation that exposes {@link LauncherLocals} and the
  * {@link TokenVerifier} as first-class decorators on every `FastifyInstance`.
  *

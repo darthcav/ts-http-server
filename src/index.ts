@@ -15,7 +15,6 @@ import launcher from "./launcher.ts"
 export { createKeycloakVerifier } from "./auth/keycloak.ts"
 export type {
     DefaultPluginsOptions,
-    DefaultRoutesOptions,
     FSTPlugin,
     KeycloakAuthConfig,
     LauncherLocals,

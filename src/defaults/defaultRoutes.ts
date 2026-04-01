@@ -1,6 +1,5 @@
 import { methodNotAllowed, notAcceptable, unauthorized } from "@hapi/boom"
 import type { FastifyReply, FastifyRequest, RouteOptions } from "fastify"
-import type { DefaultRoutesOptions } from "../types.ts"
 
 /**
  * Pre-handler that enforces bearer-token authentication on a route.
@@ -42,9 +41,7 @@ async function apiAuthPreHandler(
  * `request.server.locals.authRequired` and delegates token verification to
  * the `verifyToken` decorator on the Fastify instance.
  */
-export default function defaultRoutes(
-    _opts: DefaultRoutesOptions = {},
-): Map<string, RouteOptions> {
+export default function defaultRoutes(): Map<string, RouteOptions> {
     const routes = new Map<string, RouteOptions>()
 
     routes.set("INDEX", {

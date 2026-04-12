@@ -199,16 +199,19 @@ docker run --rm -p 8888:8888 -e HOST=0.0.0.0 ts-http-server
 
 ```yaml
 services:
-  app:
-    image: ts-http-server
+  ts-http-server:
+    image: ghcr.io/darthcav/ts-http-server:latest
+    container_name: ts-http-server
+    restart: unless-stopped
+    env_file:
+      - .env
     ports:
       - "8888:8888"
-    environment:
-      NODE_ENV: production
-      HOST: 0.0.0.0
-    # Override the running user at runtime
-    # (must match a valid UID:GID on the host if needed)
-    user: "1001:1001"
+    logging:
+      driver: local
+    # Override the running user at runtime (must match APP_USER/APP_GROUP used at build time,
+    # or a valid UID:GID on the host). Defaults to the image's built-in node:node.
+    # user: "1001:1001"
 ```
 
 > **Note:** `APP_USER`/`APP_GROUP` are baked in at build time via `chown` and `USER`. To override the running user at
@@ -220,7 +223,7 @@ services:
 
 [node-version]: https://img.shields.io/badge/node-%3E%3D25-orange.svg?style=flat-square
 [node-url]: https://nodejs.org
-[version-image]: https://img.shields.io/badge/version-0.6.0-blue.svg?style=flat-square
+[version-image]: https://img.shields.io/badge/version-0.7.0-blue.svg?style=flat-square
 [ci-badge]: https://github.com/darthcav/ts-http-server/actions/workflows/tests.yml/badge.svg
 [coverage-badge]: https://codecov.io/github/darthcav/ts-http-server/branch/dev/graph/badge.svg?token=K8Q4T4N9SG
 [coverage-url]: https://codecov.io/github/darthcav/ts-http-server

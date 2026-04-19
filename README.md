@@ -4,6 +4,8 @@
 
 A TypeScript wrapper HTTP server for Node.js >= 25 based upon [Fastify](https://fastify.dev/).
 
+## Documentation
+
 [API Documentation][pages-url]
 
 ## Features

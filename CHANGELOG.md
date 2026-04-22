@@ -7,6 +7,18 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.7.0] - 2026-04-22
+
+### Changed
+
+- `.prettierrc.json`: `printWidth` reduced from 120 → 100 to align with `template-typescript`
+- `CLAUDE.md`: enriched with Git Workflow (branching strategy, conventional commits, pre-merge
+  checklist), expanded Commands section (individual test examples), Architecture section
+  (entrypoints, build/package, env vars, CI/CD workflows), and additional Code Style note (prefer
+  `type` over `interface`)
+- `.github/copilot-instructions.md`, `CHANGELOG.md`, `README.md`: prose reflowed to match new
+  100-char `printWidth`
+
 ## [0.6.0] - 2026-04-01
 
 ### Added

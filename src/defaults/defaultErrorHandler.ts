@@ -1,6 +1,31 @@
 import type { Boom } from "@hapi/boom"
 import type { FastifyError, FastifyReply, FastifyRequest } from "fastify"
 
+async function sendError(
+    reply: FastifyReply,
+    request: FastifyRequest,
+    accept: ReturnType<FastifyRequest["accepts"]>,
+    status: number,
+    message: string,
+    jsonBody: unknown,
+    plainText: string,
+): Promise<void> {
+    switch (accept.type(["html", "json"])) {
+        case "html":
+            return reply.type("text/html").view("_error", {
+                menu_name: "",
+                header: `HTTP error ${status} (${message})`,
+                uri: request.url,
+                status,
+                message,
+            })
+        case "json":
+            return reply.type("application/json").send(jsonBody)
+        default:
+            return reply.type("text/plain").send(plainText)
+    }
+}
+
 /**
  * Fastify error handler supporting Boom errors and generic errors.
  *
@@ -27,47 +52,28 @@ export default async function defaultErrorHandler(
     if (boom.isBoom) {
         const payload = boom.output.payload
         payload.message = boom.message
-
         reply.status(payload.statusCode)
-
-        switch (accept.type(["html", "json"])) {
-            case "html":
-                return reply.type("text/html").view("_error", {
-                    menu_name: "",
-                    header: `HTTP error ${payload.statusCode} (${payload.message})`,
-                    uri: request.url,
-                    status: payload.statusCode,
-                    message: payload.message,
-                })
-            case "json":
-                return reply.type("application/json").send(payload)
-            default:
-                return reply
-                    .type("text/plain")
-                    .send(`${payload.error} :: ${payload.message}`)
-        }
-    } else {
-        if (
-            !reply.statusCode ||
-            reply.statusCode < 400 ||
-            reply.statusCode > 599
-        ) {
-            reply.status(500)
-        }
-
-        switch (accept.type(["html", "json"])) {
-            case "html":
-                return reply.type("text/html").view("_error", {
-                    menu_name: "",
-                    header: `HTTP error ${reply.statusCode} (${error.message})`,
-                    uri: request.url,
-                    status: reply.statusCode,
-                    message: error.message,
-                })
-            case "json":
-                return reply.type("application/json").send(error)
-            default:
-                return reply.type("text/plain").send(JSON.stringify(error))
-        }
+        return sendError(
+            reply,
+            request,
+            accept,
+            payload.statusCode,
+            payload.message,
+            payload,
+            `${payload.error} :: ${payload.message}`,
+        )
     }
+
+    if (!reply.statusCode || reply.statusCode < 400 || reply.statusCode > 599) {
+        reply.status(500)
+    }
+    return sendError(
+        reply,
+        request,
+        accept,
+        reply.statusCode,
+        error.message,
+        error,
+        JSON.stringify(error),
+    )
 }

@@ -69,7 +69,6 @@ export default function launcher({
         )
     }
 
-    // TODO: Add hook for `onRequestAbort`
     fastify.addHook("preHandler", preHandler)
     fastify.addHook("onResponse", onResponse)
 

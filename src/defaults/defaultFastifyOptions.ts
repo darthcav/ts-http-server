@@ -16,6 +16,7 @@ import getConsoleFastifyLogger from "./getConsoleFastifyLogger.ts"
  *
  * @param logger - The application LogTape logger; its category is used as the
  *   base category for Fastify's own logger.
+ * @returns Base `FastifyServerOptions` to spread into the `Fastify(...)` call.
  */
 export default function defaultFastifyOptions(
     logger: Logger,

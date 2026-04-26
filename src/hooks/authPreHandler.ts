@@ -17,6 +17,8 @@ import picomatch from "picomatch"
  * @param authPaths - Array of picomatch glob patterns (e.g. `["/api/**"]`).
  * @param realm - Protection-space label used in the `WWW-Authenticate` challenge
  *   (RFC 6750). Typically the Keycloak realm name. Defaults to `"api"`.
+ * @returns An async Fastify `preHandler` hook that enforces bearer-token
+ *   authentication on routes matching `authPaths`.
  */
 export function createAuthPreHandler(
     authPaths: string[],

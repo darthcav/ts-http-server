@@ -14,6 +14,9 @@ import type { FastifyReply, FastifyRequest } from "fastify"
  *
  * Uses `request.log.debug` so each log record is automatically correlated with
  * the request ID assigned by Fastify.
+ *
+ * @param request - The incoming Fastify request to log.
+ * @param _reply - The Fastify reply (unused; present to satisfy the hook signature).
  */
 export default async function preHandler(
     request: FastifyRequest,

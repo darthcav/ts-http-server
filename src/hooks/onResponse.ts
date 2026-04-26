@@ -14,6 +14,9 @@ import type { FastifyReply, FastifyRequest } from "fastify"
  *
  * Uses `reply.log.info` for 2xx/3xx and `reply.log.error` for 4xx/5xx,
  * so each log record is automatically correlated with the request ID assigned by Fastify.
+ *
+ * @param request - The completed Fastify request.
+ * @param reply - The Fastify reply containing status, headers, and elapsed time.
  */
 export default async function onResponse(
     request: FastifyRequest,

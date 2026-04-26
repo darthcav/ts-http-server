@@ -12,6 +12,9 @@ import type { RouteOptions } from "fastify"
  *
  * Authentication is handled globally by the `preHandler` hook registered in
  * {@link launcher} when `locals.authPaths` is set.
+ *
+ * @returns A `Map` of route names to `RouteOptions`, suitable for passing as
+ *   the `routes` field of {@link LauncherOptions}.
  */
 export default function defaultRoutes(): Map<string, RouteOptions> {
     const routes = new Map<string, RouteOptions>()

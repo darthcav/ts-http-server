@@ -11,6 +11,10 @@ import type { FastifyError, FastifyReply, FastifyRequest } from "fastify"
  *
  * For Boom errors the HTTP status code and payload come from `error.output`.
  * For generic errors a 500 is used unless the reply already has a 4xx/5xx status.
+ *
+ * @param error - The Fastify or Boom error that triggered the handler.
+ * @param request - The Fastify request associated with the error.
+ * @param reply - The Fastify reply used to send the error response.
  */
 export default async function defaultErrorHandler(
     error: FastifyError,

@@ -38,7 +38,7 @@
         "@logtape/logtape": "2.0.6",
         "ejs": "5.0.2",
         "fastify": "5.8.5",
-        "jose": "6.2.2",
+        "jose": "6.2.3",
         "picomatch": "4.0.4",
         "yaml": "2.8.4"
     },

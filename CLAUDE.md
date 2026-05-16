@@ -39,7 +39,7 @@ repository.
 
 ## Stack
 
-- Node.js >= 25 with native TypeScript execution (type stripping)
+- Node.js >= 26 with native TypeScript execution (type stripping)
 - TypeScript with strict mode and isolated declarations
 - Only erasable TS syntax (no enums, no runtime namespaces, no parameter properties)
 - ESM only (`"type": "module"`)
@@ -101,7 +101,7 @@ repository.
 
 ### CI/CD Workflows
 
-- **`.github/workflows/tests.yml`** — Runs lint, build, tests, and LCOV coverage on Node 25 for
+- **`.github/workflows/tests.yml`** — Runs lint, build, tests, and LCOV coverage on Node 26 for
   pushes to `dev` and pull requests. Uses `.env.example` copied to `.env.local`.
 - **`.github/workflows/gh-pages.yml`** — Builds TypeDoc and deploys `public/` to GitHub Pages from
   `main` branch.

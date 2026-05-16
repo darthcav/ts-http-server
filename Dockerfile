@@ -1,5 +1,5 @@
 ##### Build Arguments #####
-ARG BUILD_IMAGE=node:25-alpine
+ARG BUILD_IMAGE=node:26-alpine
 
 ##### Install dependencies #####
 FROM ${BUILD_IMAGE} AS build

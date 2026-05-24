@@ -7,8 +7,15 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.7.1] - 2026-05-24
+
 ### Changed
 
+- `src/defaults/defaultErrorHandler.ts`, `src/defaults/defaultFastifyOptions.ts`,
+  `src/defaults/defaultRoutes.ts`, `src/hooks/authPreHandler.ts`, `src/hooks/onResponse.ts`,
+  `src/hooks/preHandler.ts`, `src/launcher.ts`: added or expanded JSDoc comments on all exported
+  symbols
+- `tsconfig.json`: removed inline comment annotations (no functional change)
 - Node.js minimum engine version raised to `>=26`
 - `Dockerfile`: base image updated from `node:25-alpine` to `node:26-alpine`
 - CI workflows (`tests.yml`, `gh-pages.yml`, `publish.yml`): Node.js pinned to `26.x`
@@ -24,27 +31,13 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Dependencies
 
-- `@darthcav/ts-utils` 0.9.0 → 0.10.1
-- `@biomejs/biome` 2.4.13 → 2.4.15
-- `@logtape/fastify` 2.0.5 → 2.0.8
-- `@logtape/logtape` 2.0.5 → 2.0.8
+- `@darthcav/ts-utils` 0.9.0 → 0.10.4
+- `@biomejs/biome` 2.4.12 → 2.4.15
+- `@logtape/fastify` 2.0.5 → 2.1.1
+- `@logtape/logtape` 2.0.5 → 2.1.1
 - `yaml` 2.8.3 → 2.9.0
 - `jose` 6.2.2 → 6.2.3
-- `@types/node` 25.6.0 → 25.8.0
-
-## [0.7.1] - 2026-04-26
-
-### Changed
-
-- `src/defaults/defaultErrorHandler.ts`, `src/defaults/defaultFastifyOptions.ts`,
-  `src/defaults/defaultRoutes.ts`, `src/hooks/authPreHandler.ts`, `src/hooks/onResponse.ts`,
-  `src/hooks/preHandler.ts`, `src/launcher.ts`: added or expanded JSDoc comments on all exported
-  symbols
-- `tsconfig.json`: removed inline comment annotations (no functional change)
-
-### Dependencies
-
-- `@biomejs/biome` 2.4.12 → 2.4.13
+- `@types/node` 25.6.0 → 25.9.1
 
 ## [0.7.0] - 2026-04-22
 

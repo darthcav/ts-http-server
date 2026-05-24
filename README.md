@@ -3,7 +3,7 @@
 [![Node][node-version]][node-url] ![Version][version-image] ![CI][ci-badge]
 [![Coverage][coverage-badge]][coverage-url]
 
-A TypeScript wrapper HTTP server for Node.js >= 25 based upon [Fastify](https://fastify.dev/).
+A TypeScript wrapper HTTP server for Node.js >= 26 based upon [Fastify](https://fastify.dev/).
 
 ## Documentation
 
@@ -171,7 +171,7 @@ Available build arguments:
 
 | Argument                | Default          | Description                                   |
 | ----------------------- | ---------------- | --------------------------------------------- |
-| `BUILD_IMAGE`           | `node:25-alpine` | Base image for both stages                    |
+| `BUILD_IMAGE`           | `node:26-alpine` | Base image for both stages                    |
 | `APP_USER`              | `node`           | OS user owning `/app` and running the process |
 | `APP_GROUP`             | `node`           | OS group owning `/app`                        |
 | `CONTAINER_EXPOSE_PORT` | `8888`           | Port exposed by the container                 |
@@ -229,9 +229,9 @@ services:
 
 [Apache-2.0](LICENSE)
 
-[node-version]: https://img.shields.io/badge/node-%3E%3D25-orange.svg?style=flat-square
+[node-version]: https://img.shields.io/badge/node-%3E%3D26-orange.svg?style=flat-square
 [node-url]: https://nodejs.org
-[version-image]: https://img.shields.io/badge/version-0.7.0-blue.svg?style=flat-square
+[version-image]: https://img.shields.io/badge/version-0.7.1-blue.svg?style=flat-square
 [ci-badge]: https://github.com/darthcav/ts-http-server/actions/workflows/tests.yml/badge.svg
 [coverage-badge]:
     https://codecov.io/github/darthcav/ts-http-server/branch/dev/graph/badge.svg?token=K8Q4T4N9SG

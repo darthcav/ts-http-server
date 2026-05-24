@@ -1,52 +1,29 @@
 {
     "include": ["src/**/*.ts", "src/**/*.tsx"],
     "compilerOptions": {
-        // Specified explicitly (not derived from source file paths)
         "rootDir": "src",
         "outDir": "dist",
-        // Target and module
-        // Nothing is ever transpiled
         "target": "esnext",
-        // Sets up "src" accordingly
         "module": "nodenext",
-        // Sets up "moduleResolution"
         "lib": ["esnext"],
         "types": ["node"],
-        // Don't check .d.ts files
         "skipLibCheck": true,
-        // Emptily imported modules must exist
         "noUncheckedSideEffectImports": true,
-        // Allow importing JSON
         "resolveJsonModule": true,
-        // Type checking
-        // Essential: activates several useful options
         "strict": true,
-        // Beyond "strict": less important
         "exactOptionalPropertyTypes": true,
         "noFallthroughCasesInSwitch": true,
         "noImplicitOverride": true,
         "noImplicitReturns": true,
         "noPropertyAccessFromIndexSignature": true,
         "noUncheckedIndexedAccess": true,
-        // Only JS at non-type level (type stripping etc.)
-        // Enforce keyword `type` for type imports etc.; implies "isolatedModules"
         "verbatimModuleSyntax": true,
-        // Enforce only erasable TS syntax (no enum, no parameter properties, etc.)
         "erasableSyntaxOnly": true,
-        // Use filename extension .ts in imports
         "allowImportingTsExtensions": true,
-        // Only needed if compiling to JavaScript; rewrites .ts to .js
         "rewriteRelativeImportExtensions": true,
-
-        // Output: .js
         "sourceMap": true,
-        // Output: .d.ts
         "declaration": true,
-        // .d.ts.map files; "Go to definition" jumps to TS source
         "declarationMap": true,
-        // Enforces constraints that enable efficient .d.ts generation
-        // (no inferred return types for exported functions etc.)
-        // Requires `declaration` and/or `composite` to be true
         "isolatedDeclarations": true
     }
 }

@@ -18,6 +18,7 @@ import type { LauncherOptions } from "./types.ts"
  * 5. Registers {@link preHandler} and {@link onResponse} hooks.
  * 6. Calls `fastify.listen()` and invokes the optional `done` callback.
  *
+ * @param opts - Options object configuring the server; see {@link LauncherOptions} for details.
  * @returns The `FastifyInstance` (e.g. for use with `fastify.close()`).
  */
 export default function launcher({
@@ -68,7 +69,6 @@ export default function launcher({
         )
     }
 
-    // TODO: Add hook for `onRequestAbort`
     fastify.addHook("preHandler", preHandler)
     fastify.addHook("onResponse", onResponse)
 

@@ -39,28 +39,29 @@ main(pkg.name, logger, async () => {
         ...(authPaths?.length ? { authPaths } : {}),
         ...(keycloakRealm ? { authRealm: keycloakRealm } : {}),
     }
-    const plugins = keycloakAuth
-        ? defaultPlugins({ locals, keycloakAuth })
-        : defaultPlugins({ locals })
+    const plugins = defaultPlugins({
+        locals,
+        ...(keycloakAuth ? { keycloakAuth } : {}),
+    })
     const routes = defaultRoutes()
 
-    const fastify = keycloakAuth
-        ? launcher({
-              logger,
-              locals,
-              plugins,
-              routes,
-              verifyToken: createKeycloakVerifier(keycloakAuth),
-          })
-        : launcher({ logger, locals, plugins, routes })
+    const fastify = launcher({
+        logger,
+        locals,
+        plugins,
+        routes,
+        ...(keycloakAuth
+            ? { verifyToken: createKeycloakVerifier(keycloakAuth) }
+            : {}),
+    })
 
     for (const signal of ["SIGINT", "SIGTERM"] as const) {
-        process.on(signal, async (signal) =>
+        process.on(signal, async (sig) =>
             fastify
                 .close()
                 .then(() => {
                     logger.error(
-                        `Process interrupted and server closed. Received signal: ${signal}`,
+                        `Process interrupted and server closed. Received signal: ${sig}`,
                     )
                     process.exit(0)
                 })

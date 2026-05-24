@@ -14,6 +14,9 @@ import type { FastifyReply, FastifyRequest } from "fastify"
  *
  * Uses `reply.log.info` for 2xx/3xx and `reply.log.error` for 4xx/5xx,
  * so each log record is automatically correlated with the request ID assigned by Fastify.
+ *
+ * @param request - The completed Fastify request.
+ * @param reply - The Fastify reply containing status, headers, and elapsed time.
  */
 export default async function onResponse(
     request: FastifyRequest,
@@ -22,13 +25,11 @@ export default async function onResponse(
     const contentLength = reply.getHeader("content-length")
     const size = contentLength != null ? Number(contentLength) : "-"
 
+    const line = `${request.ip} -- ${request.method} ${request.url} HTTP/${request.raw.httpVersion} ${reply.statusCode} ${size} ${Math.round(reply.elapsedTime)}ms "${request.headers["referer"] ?? "-"}" "${request.headers["user-agent"] ?? "-"}"`
+
     if (reply.statusCode < 400) {
-        reply.log.info(
-            `${request.ip} -- ${request.method} ${request.url} HTTP/${request.raw.httpVersion} ${reply.statusCode} ${size} ${Math.round(reply.elapsedTime)}ms "${request.headers["referer"] ?? "-"}" "${request.headers["user-agent"] ?? "-"}"`,
-        )
+        reply.log.info(line)
     } else {
-        reply.log.error(
-            `${request.ip} -- ${request.method} ${request.url} HTTP/${request.raw.httpVersion} ${reply.statusCode} ${size} ${Math.round(reply.elapsedTime)}ms "${request.headers["referer"] ?? "-"}" "${request.headers["user-agent"] ?? "-"}"`,
-        )
+        reply.log.error(line)
     }
 }

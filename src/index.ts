@@ -1,5 +1,5 @@
 /**
- * A TypeScript HTTP server library built on Fastify for Node.js >= 25.
+ * A TypeScript HTTP server library built on Fastify for Node.js >= 26.
  *
  * @packageDocumentation
  */

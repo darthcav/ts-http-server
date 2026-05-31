@@ -7,6 +7,29 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+
+- `src/hooks/preHandler.ts`: `NO_CONTENT_PATHS` set of browser-initiated probe paths (currently the
+  Chromium DevTools workspace-discovery endpoint
+  `/.well-known/appspecific/com.chrome.devtools.json`); requests whose URL matches are
+  short-circuited with an empty `204 No Content` response instead of falling through to the
+  `notFound` handler and being logged as 404 errors
+
+### Changed
+
+- `src/hooks/preHandler.ts`: the previously unused `_reply` parameter is now used (`reply`) to send
+  the `204` short-circuit response
+
+### Tests
+
+- `src/__tests__/launcher.test.ts`: added coverage for the DevTools probe path returning `204`
+
+### Dependencies
+
+- `hasown` 2.0.3 → 2.0.4
+- `lru-cache` 11.5.0 → 11.5.1
+- `package-lock.json`: added `libc: ["glibc"]` fields to platform-specific entries
+
 ## [0.7.1] - 2026-05-24
 
 ### Changed

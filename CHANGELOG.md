@@ -7,6 +7,31 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+
+- `src/handlers/methodNotAllowedHandler.ts`: `createMethodNotAllowedHandler(allowedMethods)` —
+  factory returning a Fastify route handler that responds `405 Method Not Allowed` with an `Allow`
+  header listing the permitted methods; exported from the public API and used by `defaultRoutes` for
+  the `/` and `/api/` catch-all method routes
+
+### Changed
+
+- `src/defaults/defaultRoutes.ts`: the two `/`-and-`/api/` 405 handlers now delegate to
+  `createMethodNotAllowedHandler` instead of duplicating the `Allow`-header-and-throw logic; the
+  `GET /` and `GET /api/` content-negotiation `switch` statements were simplified to guard clauses
+- `src/defaults/defaultPlugins.ts`: extracted the duplicated OpenAPI operation guard into a single
+  `isOperationObject` type guard
+- `src/launcher.ts`, `src/start.ts`: LogTape `Logger` calls now use LogTape's tagged-template syntax
+  (`` logger.error`...` ``) for structured logging, matching the convention in `@darthcav/ts-utils`
+  (the Fastify pino-style `request.log`/`reply.log` calls in the hooks are unchanged)
+- `src/defaults/getConsoleFastifyLogger.ts`: `name` parameter widened to `readonly string[]`, so
+  `defaultFastifyOptions` passes `logger.category` directly instead of copying it with a spread
+
+### Tests
+
+- `src/__tests__/methodNotAllowedHandler.test.ts`: new suite covering the `Allow` header contents
+  (multiple methods, single method) and the Boom `405` thrown by `createMethodNotAllowedHandler`
+
 ## [0.7.2] - 2026-06-15
 
 ### Added
@@ -42,7 +67,7 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - `prettier` 3.8.3 → 3.8.4
 - `hasown` 2.0.3 → 2.0.4
 - `lru-cache` 11.5.0 → 11.5.1
-- `semver` → 7.8.4
+- `semver` 7.8.1 → 7.8.4
 - `package-lock.json`: added `libc: ["glibc"]` fields to platform-specific entries
 
 ## [0.7.1] - 2026-05-24

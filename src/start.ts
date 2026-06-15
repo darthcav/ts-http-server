@@ -60,13 +60,11 @@ main(pkg.name, logger, async () => {
             fastify
                 .close()
                 .then(() => {
-                    logger.error(
-                        `Process interrupted and server closed. Received signal: ${sig}`,
-                    )
+                    logger.error`Process interrupted and server closed. Received signal: ${sig}`
                     process.exit(0)
                 })
                 .catch((error) => {
-                    logger.error(`Server shutdown error: ${error}`)
+                    logger.error`Server shutdown error: ${error}`
                     process.exit(1)
                 }),
         )

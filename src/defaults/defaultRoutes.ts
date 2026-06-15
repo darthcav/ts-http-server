@@ -1,5 +1,6 @@
-import { methodNotAllowed, notAcceptable } from "@hapi/boom"
+import { notAcceptable } from "@hapi/boom"
 import type { RouteOptions } from "fastify"
+import { createMethodNotAllowedHandler } from "../handlers/methodNotAllowedHandler.ts"
 
 /**
  * Returns the default route map used in {@link launcher}.
@@ -25,24 +26,19 @@ export default function defaultRoutes(): Map<string, RouteOptions> {
         exposeHeadRoute: true,
         handler: async (request, reply) => {
             const accept = request.accepts()
-            switch (accept.type(["html"])) {
-                case "html":
-                    return reply.type("text/html").view("index.ejs", {
-                        menu_name: "index",
-                        header: "Welcome page",
-                    })
-                default:
-                    throw notAcceptable()
+            if (accept.type(["html"]) !== "html") {
+                throw notAcceptable()
             }
+            return reply.type("text/html").view("index.ejs", {
+                menu_name: "index",
+                header: "Welcome page",
+            })
         },
     })
     routes.set("INDEX_405", {
         method: ["DELETE", "PATCH", "POST", "PUT", "OPTIONS"],
         url: "/",
-        handler: async (_request, reply) => {
-            reply.header("allow", "GET, HEAD")
-            throw methodNotAllowed()
-        },
+        handler: createMethodNotAllowedHandler(["GET", "HEAD"]),
     })
     routes.set("API_INDEX", {
         method: "GET",
@@ -51,23 +47,18 @@ export default function defaultRoutes(): Map<string, RouteOptions> {
         handler: async (request, reply) => {
             const { locals } = request.server
             const accept = request.accepts()
-            switch (accept.type(["json"])) {
-                case "json":
-                    return reply.type("application/json").send({
-                        message: `Welcome to the index page of the server API :: ${locals.pkg?.["name"]}`,
-                    })
-                default:
-                    throw notAcceptable()
+            if (accept.type(["json"]) !== "json") {
+                throw notAcceptable()
             }
+            return reply.type("application/json").send({
+                message: `Welcome to the index page of the server API :: ${locals.pkg?.["name"]}`,
+            })
         },
     })
     routes.set("API_INDEX_405", {
         method: ["DELETE", "PATCH", "POST", "PUT"],
         url: "/api/",
-        handler: async (_request, reply) => {
-            reply.header("allow", "GET, HEAD")
-            throw methodNotAllowed()
-        },
+        handler: createMethodNotAllowedHandler(["GET", "HEAD"]),
     })
 
     return routes

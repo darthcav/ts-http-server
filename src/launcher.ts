@@ -74,7 +74,7 @@ export default function launcher({
 
     fastify.listen({ host, port }, (error) => {
         if (error) {
-            logger.error(`${error.message}`)
+            logger.error`${error.message}`
             process.exit(1)
         }
         done?.()

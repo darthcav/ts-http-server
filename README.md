@@ -52,11 +52,11 @@ main(pkg.name, logger, async () => {
             fastify
                 .close()
                 .then(() => {
-                    logger.error(`Server closed on ${signal}`)
+                    logger.error`Server closed on ${signal}`
                     process.exit(0)
                 })
                 .catch((error) => {
-                    logger.error(`Shutdown error: ${error}`)
+                    logger.error`Shutdown error: ${error}`
                     process.exit(1)
                 }),
         )
@@ -69,6 +69,19 @@ to the parent of `import.meta.dirname`):
 
 ```ts
 const plugins = defaultPlugins({ locals, baseDir: import.meta.dirname })
+```
+
+Use `createMethodNotAllowedHandler` to answer the catch-all method route of a path with a
+`405 Method Not Allowed` response whose `Allow` header lists the permitted methods:
+
+```ts
+import { createMethodNotAllowedHandler } from "@darthcav/ts-http-server"
+
+routes.set("INDEX_405", {
+    method: ["DELETE", "PATCH", "POST", "PUT", "OPTIONS"],
+    url: "/",
+    handler: createMethodNotAllowedHandler(["GET", "HEAD"]), // Allow: GET, HEAD
+})
 ```
 
 ### Keycloak authentication
@@ -153,6 +166,7 @@ src/
   types.ts          # Shared type definitions
   auth/             # Authentication utilities
   defaults/         # Default Fastify options, plugins, routes, and error handler
+  handlers/         # Reusable route handlers (e.g. createMethodNotAllowedHandler)
   hooks/            # Fastify hooks (preHandler, onResponse)
   __tests__/        # Test files
 dist/               # Compiled output (generated)

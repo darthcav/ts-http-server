@@ -7,6 +7,8 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.7.2] - 2026-06-15
+
 ### Added
 
 - `src/hooks/preHandler.ts`: `NO_CONTENT_PATHS` set of browser-initiated probe paths (currently the
@@ -19,6 +21,8 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 - `src/hooks/preHandler.ts`: the previously unused `_reply` parameter is now used (`reply`) to send
   the `204` short-circuit response
+- `biome.json`: migrated the deprecated `"recommended": true` linter field to the new
+  `"preset": "recommended"` form (via `biome migrate`)
 
 ### Tests
 
@@ -26,8 +30,19 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Dependencies
 
+- `@darthcav/ts-utils` 0.10.4 → 0.10.5
+- `@fastify/compress` 8.3.1 → 9.0.0
+- `@fastify/swagger-ui` 5.2.6 → 6.0.0
+- `@fastify/view` 11.1.1 → 12.0.0
+- `@logtape/fastify` 2.1.1 → 2.1.4
+- `@logtape/logtape` 2.1.1 → 2.1.4
+- `ejs` 5.0.2 → 6.0.1
+- `@biomejs/biome` 2.4.15 → 2.5.0
+- `@types/node` 25.9.1 → 25.9.3
+- `prettier` 3.8.3 → 3.8.4
 - `hasown` 2.0.3 → 2.0.4
 - `lru-cache` 11.5.0 → 11.5.1
+- `semver` → 7.8.4
 - `package-lock.json`: added `libc: ["glibc"]` fields to platform-specific entries
 
 ## [0.7.1] - 2026-05-24

@@ -148,6 +148,14 @@ suite("launcher [HTTP]", () => {
         equal(res.status, 404)
     })
 
+    test("GET Chromium DevTools probe → 204 empty (no 404 log)", async () => {
+        const res = await fetch(
+            `${base}/.well-known/appspecific/com.chrome.devtools.json`,
+        )
+        equal(res.status, 204)
+        equal(await res.text(), "")
+    })
+
     test("GET /error → 500 JSON", async () => {
         const res = await fetch(`${base}/error`, {
             headers: { accept: "application/json" },

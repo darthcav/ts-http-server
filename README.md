@@ -18,6 +18,9 @@ A TypeScript wrapper HTTP server for Node.js >= 26 based upon [Fastify](https://
 - Default plugin set: accepts, CORS, compression, ETag, Helmet CSP, EJS views, static files,
   Swagger, and Swagger UI
 - Optional Keycloak-backed JWT authentication for the default `/api/` routes
+- Default `GET /health` endpoint reporting service status and runtime/environment information as
+  `application/health+json` (IETF Health Check Response Format), with pluggable dependency checks
+  that downgrade the status and return `503` on failure
 - Returns a `FastifyInstance` for graceful shutdown via `SIGINT`/`SIGTERM`
 - Biome for linting and formatting
 - Built-in Node.js test runner
@@ -83,6 +86,51 @@ routes.set("INDEX_405", {
     handler: createMethodNotAllowedHandler(["GET", "HEAD"]), // Allow: GET, HEAD
 })
 ```
+
+### Health checks
+
+The default `GET /health` route returns an `application/health+json` report following the IETF
+[Health Check Response Format for HTTP APIs][health-check-rfc]. By default it reports
+`status: "pass"` together with service metadata (`version`, `serviceId`, …), process `uptime`, and
+runtime `environment` and `memory` information.
+
+To monitor dependencies, pass `healthChecks` to `defaultRoutes`. Each check is an object with a
+`name` (conventionally `componentName:measurementName`) and a `run` function returning a
+`HealthCheckResult`; checks run concurrently on every request and a check that throws is reported as
+`fail`:
+
+```ts
+import { defaultRoutes, type HealthCheck } from "@darthcav/ts-http-server"
+
+const healthChecks: HealthCheck[] = [
+    {
+        name: "database:responseTime",
+        run: async () => {
+            const start = performance.now()
+            await db.query("SELECT 1")
+            return {
+                status: "pass",
+                componentType: "datastore",
+                observedValue: Math.round(performance.now() - start),
+                observedUnit: "ms",
+            }
+        },
+    },
+    {
+        name: "cache:availability",
+        run: async () => ({ status: (await cache.ping()) ? "pass" : "warn" }),
+    },
+]
+
+const routes = defaultRoutes({ healthChecks })
+```
+
+The results are grouped under the `checks` object keyed by `name`. The overall `status` is the worst
+of all check statuses (`fail` > `warn` > `pass`). The endpoint responds with HTTP `200` for `pass`
+and `warn`, and `503 Service Unavailable` for `fail`, so load balancers and orchestrators can probe
+it directly. `/health` is never matched by `authPaths`' default `/api/**` glob, so it stays public.
+
+[health-check-rfc]: https://datatracker.ietf.org/doc/html/draft-inadarei-api-health-check-06
 
 ### Keycloak authentication
 

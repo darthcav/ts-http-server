@@ -99,6 +99,70 @@ export type LauncherOptions = {
 }
 
 /**
+ * Status indicator for a health check or the overall service, following the
+ * IETF "Health Check Response Format for HTTP APIs" draft.
+ *
+ * - `pass` — healthy (HTTP `200`).
+ * - `warn` — healthy but with concerns (HTTP `200`).
+ * - `fail` — unhealthy (HTTP `503`).
+ */
+export type HealthStatus = "pass" | "warn" | "fail"
+
+/**
+ * Result of a single dependency health check, mapped into the `checks` object
+ * of the `/health` response per the IETF Health Check Response Format.
+ *
+ * The `time` field is populated automatically by the `/health` handler; any
+ * value supplied here is overwritten.
+ */
+export type HealthCheckResult = {
+    /** Status of the checked component. */
+    status: HealthStatus
+    /** Unique identifier of the checked component instance. */
+    componentId?: string
+    /** Type of component, e.g. `datastore`, `system`, `component`. */
+    componentType?: string
+    /** Observed value of the measurement (e.g. a latency or count). */
+    observedValue?: unknown
+    /** Unit of `observedValue`, e.g. `ms`, `s`, `%`. */
+    observedUnit?: string
+    /** Free-form output, typically an error message when `status` is `fail`. */
+    output?: string
+    /** ISO 8601 time the check was evaluated; set automatically. */
+    time?: string
+}
+
+/**
+ * A named dependency health check evaluated by the default `/health` route.
+ *
+ * Checks run concurrently on every request. A check that throws is reported as
+ * `fail` with the error message in `output`. The overall service `status` is
+ * the worst of all check statuses (`fail` > `warn` > `pass`).
+ */
+export type HealthCheck = {
+    /**
+     * Component identifier, conventionally `componentName:measurementName`
+     * (e.g. `database:responseTime`). Checks sharing a name are grouped into
+     * the same array in the `checks` object.
+     */
+    name: string
+    /** Produces the check result; may be async. Thrown errors map to `fail`. */
+    run: () => HealthCheckResult | Promise<HealthCheckResult>
+}
+
+/**
+ * Options accepted by the {@link defaultRoutes} function.
+ */
+export type DefaultRoutesOptions = {
+    /**
+     * Dependency health checks evaluated by the default `GET /health` route.
+     * When omitted or empty, the report contains no `checks` object and the
+     * service status is always `pass`.
+     */
+    healthChecks?: HealthCheck[]
+}
+
+/**
  * Options accepted by the {@link defaultPlugins} function.
  */
 export type DefaultPluginsOptions = {

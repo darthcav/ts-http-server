@@ -1,5 +1,6 @@
 import { equal, match, ok } from "node:assert/strict"
 import { request as httpRequest } from "node:http"
+import process from "node:process"
 import { after, before, suite, test } from "node:test"
 import { setTimeout } from "node:timers/promises"
 import type { Logger } from "@logtape/logtape"
@@ -247,6 +248,53 @@ suite("defaultRoutes [HTTP]", () => {
         equal(res.status, 405)
         equal(res.headers.get("allow"), "GET, HEAD")
     })
+
+    test("GET /health → 200 application/health+json with status pass", async () => {
+        const res = await fetch(`${base}/health`)
+        const body = (await res.json()) as {
+            status: string
+            version: string
+            serviceId: string
+            timestamp: string
+            uptime: number
+            checks?: unknown
+            environment: { nodeVersion: string; platform: string }
+            memory: { rss: number }
+        }
+        equal(res.status, 200)
+        equal(res.statusText, "OK")
+        match(
+            res.headers.get("content-type") ?? "",
+            /application\/health\+json/,
+        )
+        equal(body.status, "pass")
+        equal(body.serviceId, "ts-http-server")
+        equal(body.version, "0.0.0")
+        ok(typeof body.timestamp === "string")
+        ok(typeof body.uptime === "number")
+        // No checks configured → no `checks` object in the report
+        equal(body.checks, undefined)
+        equal(body.environment.nodeVersion, process.version)
+        ok(typeof body.environment.platform === "string")
+        ok(typeof body.memory.rss === "number")
+    })
+
+    test("HEAD /health → 200", async () => {
+        const res = await fetch(`${base}/health`, { method: "HEAD" })
+        equal(res.status, 200)
+    })
+
+    test("DELETE /health → 405 Method Not Allowed", async () => {
+        const res = await fetch(`${base}/health`, { method: "DELETE" })
+        equal(res.status, 405)
+        equal(res.headers.get("allow"), "GET, HEAD")
+    })
+
+    test("POST /health → 405 Method Not Allowed", async () => {
+        const res = await fetch(`${base}/health`, { method: "POST" })
+        equal(res.status, 405)
+        equal(res.headers.get("allow"), "GET, HEAD")
+    })
 })
 
 suite(
@@ -466,5 +514,168 @@ suite("defaultRoutes [HTTP] with no authPaths (auth disabled)", () => {
             },
         })
         equal(res.status, 200)
+    })
+})
+
+// ---------------------------------------------------------------------------
+// Health check mechanism suite
+// ---------------------------------------------------------------------------
+
+suite("defaultRoutes [HTTP] /health with dependency checks", () => {
+    const noop = (): void => {}
+    const testLogger = {
+        category: ["test"],
+        info: noop,
+        error: noop,
+        warn: noop,
+        debug: noop,
+        getChild: () => testLogger,
+    } as unknown as Logger
+
+    const locals = {
+        pkg: { name: "ts-http-server", version: "0.0.0", description: "Test" },
+    }
+
+    const port = 19007
+    const base = `http://localhost:${port}`
+    let server: FastifyInstance
+
+    before(async () => {
+        const plugins = defaultPlugins({ locals })
+        const routes = defaultRoutes({
+            healthChecks: [
+                {
+                    name: "database:responseTime",
+                    run: () => ({
+                        status: "pass",
+                        componentType: "datastore",
+                        observedValue: 12,
+                        observedUnit: "ms",
+                    }),
+                },
+                {
+                    name: "disk:utilization",
+                    run: async () => ({
+                        status: "warn",
+                        observedValue: 91,
+                        observedUnit: "%",
+                    }),
+                },
+                {
+                    name: "cache:availability",
+                    run: () => {
+                        throw new Error("connection refused")
+                    },
+                },
+            ],
+        })
+        server = launcher({
+            logger: testLogger,
+            locals: { ...locals, port },
+            plugins,
+            routes,
+            opts: { disableRequestLogging: true },
+        })
+        await setTimeout(1000)
+    })
+
+    after(async () => {
+        await setTimeout(500)
+        await server.close()
+    })
+
+    test("GET /health → 503 when a check fails, aggregating all checks", async () => {
+        const res = await fetch(`${base}/health`)
+        const body = (await res.json()) as {
+            status: string
+            checks: Record<
+                string,
+                Array<{
+                    status: string
+                    output?: string
+                    observedValue?: unknown
+                    observedUnit?: string
+                    componentType?: string
+                    time?: string
+                }>
+            >
+        }
+        equal(res.status, 503)
+        equal(res.statusText, "Service Unavailable")
+        match(
+            res.headers.get("content-type") ?? "",
+            /application\/health\+json/,
+        )
+        // Overall status is the worst of all checks (fail > warn > pass)
+        equal(body.status, "fail")
+
+        const db = body.checks["database:responseTime"]?.[0]
+        equal(db?.status, "pass")
+        equal(db?.componentType, "datastore")
+        equal(db?.observedValue, 12)
+        equal(db?.observedUnit, "ms")
+        ok(typeof db?.time === "string")
+
+        const disk = body.checks["disk:utilization"]?.[0]
+        equal(disk?.status, "warn")
+        equal(disk?.observedValue, 91)
+
+        // A thrown check is reported as fail with the error message in output
+        const cache = body.checks["cache:availability"]?.[0]
+        equal(cache?.status, "fail")
+        equal(cache?.output, "connection refused")
+    })
+})
+
+suite("defaultRoutes [HTTP] /health with only passing/warning checks", () => {
+    const noop = (): void => {}
+    const testLogger = {
+        category: ["test"],
+        info: noop,
+        error: noop,
+        warn: noop,
+        debug: noop,
+        getChild: () => testLogger,
+    } as unknown as Logger
+
+    const locals = {
+        pkg: { name: "ts-http-server", version: "0.0.0", description: "Test" },
+    }
+
+    const port = 19008
+    const base = `http://localhost:${port}`
+    let server: FastifyInstance
+
+    before(async () => {
+        const plugins = defaultPlugins({ locals })
+        const routes = defaultRoutes({
+            healthChecks: [
+                { name: "disk:utilization", run: () => ({ status: "warn" }) },
+            ],
+        })
+        server = launcher({
+            logger: testLogger,
+            locals: { ...locals, port },
+            plugins,
+            routes,
+            opts: { disableRequestLogging: true },
+        })
+        await setTimeout(1000)
+    })
+
+    after(async () => {
+        await setTimeout(500)
+        await server.close()
+    })
+
+    test("GET /health → 200 with status warn when worst check is warn", async () => {
+        const res = await fetch(`${base}/health`)
+        const body = (await res.json()) as {
+            status: string
+            checks: Record<string, unknown[]>
+        }
+        equal(res.status, 200)
+        equal(body.status, "warn")
+        ok(Array.isArray(body.checks["disk:utilization"]))
     })
 })

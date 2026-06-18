@@ -24,6 +24,10 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   so `X-Forwarded-For` (and `request.ip`) cannot be spoofed when the server is not behind a trusted
   proxy. `src/start.ts` reads a new `TRUST_PROXY` env var (`true`/`false`, a hop count, or a
   comma-separated IP/CIDR allowlist) to opt in.
+- `src/hooks/onResponse.ts`: client-controlled values in the access-log line (request URL,
+  `Referer`, and `User-Agent`) are now sanitized — ASCII control characters, including CR and LF,
+  are replaced with the Unicode replacement character `�`, so a crafted header can no longer forge
+  or split log entries (CWE-117 log injection).
 
 ### Changed
 

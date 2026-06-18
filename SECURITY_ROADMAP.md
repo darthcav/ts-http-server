@@ -12,15 +12,6 @@ Severity scale: 🔴 high · 🟠 medium · 🟡 low.
 
 ## Open items
 
-### 6. 🟡 Swagger UI + full OpenAPI spec are public
-
-- **Location:** `src/defaults/defaultPlugins.ts:195-221`
-- **Risk:** `/docs` and the spec are not under `/api/**`, so they are reachable unauthenticated,
-  publishing the full endpoint map. Risky in production.
-- **Fix:** gate `/docs` (and the spec) behind auth or an env flag; default to disabled in
-  production.
-- **Tests:** docs reachable when enabled; blocked/absent when disabled.
-
 ### 7. 🟡 CSP allows `'unsafe-inline'` scripts globally
 
 - **Location:** `src/defaults/defaultPlugins.ts:169`
@@ -48,3 +39,6 @@ Severity scale: 🔴 high · 🟠 medium · 🟡 low.
 - **5. 🟡 Log injection via raw `Referer` / `User-Agent`** — fixed in `59e7b4b` (merged to `dev` via
   `73118da`). The `onResponse` access-log line now sanitizes the URL, `Referer`, and `User-Agent`,
   replacing ASCII control characters (incl. CR/LF) with `�` so headers cannot forge log entries.
+- **6. 🟡 Swagger UI + full OpenAPI spec are public** — fixed in `a0ac53e` (merged to `dev` via
+  `6625fd9`). `/docs` and the spec are now gated behind a new `docs` option that defaults to off
+  when `NODE_ENV === "production"`; the `ENABLE_DOCS` env var overrides it.

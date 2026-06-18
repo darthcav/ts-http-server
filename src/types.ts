@@ -183,6 +183,14 @@ export type DefaultPluginsOptions = {
      * production.
      */
     cors?: FastifyCorsOptions
+    /**
+     * Whether to register Swagger UI (`/docs`) and the OpenAPI spec endpoints.
+     * These publish the full endpoint map and are reachable unauthenticated, so
+     * they are disabled in production by default. When omitted, defaults to
+     * `true` unless `NODE_ENV === "production"`, in which case it defaults to
+     * `false`. Set explicitly to override.
+     */
+    docs?: boolean
 }
 
 /**

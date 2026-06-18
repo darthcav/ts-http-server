@@ -268,6 +268,7 @@ Runtime environment variables:
 | `HOST`                  | `localhost` | Bind address (use `0.0.0.0` in containers)                            |
 | `CONTAINER_EXPOSE_PORT` | `8888`      | Port the server listens on                                            |
 | `TRUST_PROXY`           | `false`     | `true`/`false`, a hop count, or a comma-separated IP/CIDR allowlist   |
+| `ENABLE_DOCS`           | unset       | `true`/`false` to force Swagger UI (`/docs`) on/off; see note below   |
 | `API_AUTH_PATHS`        | unset       | Comma-separated picomatch globs for protected routes (e.g. `/api/**`) |
 | `KEYCLOAK_URL`          | unset       | Keycloak server base URL                                              |
 | `KEYCLOAK_REALM`        | unset       | Keycloak realm name; also used as the `WWW-Authenticate` realm label  |
@@ -277,6 +278,12 @@ Proxy trust is **disabled by default** so `X-Forwarded-For` (and therefore `requ
 access logs) cannot be spoofed. Enable `TRUST_PROXY` only when the server runs behind a trusted
 reverse proxy — set it to the proxy hop count or an explicit IP/CIDR allowlist rather than `true`
 where possible.
+
+Swagger UI (`/docs`) and the OpenAPI spec publish the full endpoint map and are reachable without
+authentication, so they are **disabled by default when `NODE_ENV=production`** and enabled
+otherwise. Set `ENABLE_DOCS=true` to force them on (e.g. for a protected staging environment) or
+`ENABLE_DOCS=false` to force them off. When calling `defaultPlugins` directly, pass the equivalent
+`docs` boolean.
 
 ### Run
 

@@ -33,6 +33,16 @@ main(pkg.name, logger, async () => {
                 ? Number(trustProxyEnv)
                 : trustProxyEnv
 
+    // ENABLE_DOCS: `true`/`false` to force Swagger UI (`/docs`) on or off.
+    // When unset, defaultPlugins decides based on NODE_ENV (off in production).
+    const enableDocsEnv = env["ENABLE_DOCS"]?.trim()
+    const docs: boolean | undefined =
+        enableDocsEnv === "true"
+            ? true
+            : enableDocsEnv === "false"
+              ? false
+              : undefined
+
     const keycloakAuth: KeycloakAuthConfig | undefined =
         keycloakUrl && keycloakRealm && keycloakClientId
             ? {
@@ -52,6 +62,7 @@ main(pkg.name, logger, async () => {
     const plugins = defaultPlugins({
         locals,
         ...(keycloakAuth ? { keycloakAuth } : {}),
+        ...(docs !== undefined ? { docs } : {}),
     })
     const routes = defaultRoutes()
 

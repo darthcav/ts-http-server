@@ -156,18 +156,29 @@ suite("launcher [HTTP]", () => {
         equal(await res.text(), "")
     })
 
-    test("GET /error → 500 JSON", async () => {
+    test("GET /error → 500 JSON with generic message (no leak)", async () => {
         const res = await fetch(`${base}/error`, {
             headers: { accept: "application/json" },
         })
         equal(res.status, 500)
+        const body = (await res.json()) as {
+            statusCode: number
+            message: string
+        }
+        equal(body.statusCode, 500)
+        equal(body.message, "Internal Server Error")
+        // The thrown error's message must never reach the client.
+        ok(!JSON.stringify(body).includes("test server error"))
     })
 
-    test("GET /error → 500 plain text", async () => {
+    test("GET /error → 500 plain text with generic message (no leak)", async () => {
         const res = await fetch(`${base}/error`, {
             headers: { accept: "text/plain" },
         })
         equal(res.status, 500)
+        const text = await res.text()
+        ok(text.includes("Internal Server Error"))
+        ok(!text.includes("test server error"))
     })
 
     test("GET /error-invalid-status → 500 (statusCode > 599 reset to 500)", async () => {
@@ -175,12 +186,19 @@ suite("launcher [HTTP]", () => {
             headers: { accept: "application/json" },
         })
         equal(res.status, 500)
+        const body = (await res.json()) as { message: string }
+        equal(body.message, "Internal Server Error")
+        ok(!JSON.stringify(body).includes("out-of-range status code"))
     })
 
-    test("GET /error-valid-status → 503 (valid 4xx–5xx status preserved)", async () => {
+    test("GET /error-valid-status → 503 (valid 4xx–5xx status preserved, generic message)", async () => {
         const res = await fetch(`${base}/error-valid-status`, {
             headers: { accept: "application/json" },
         })
         equal(res.status, 503)
+        const body = (await res.json()) as { message: string }
+        // Message is genericised to the status reason phrase, not the thrown text.
+        equal(body.message, "Service Unavailable")
+        ok(!JSON.stringify(body).includes("valid 5xx status code"))
     })
 })

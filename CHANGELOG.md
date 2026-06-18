@@ -7,6 +7,8 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.9.0] - 2026-06-18
+
 ### Security
 
 - `src/auth/keycloak.ts`: the Keycloak JWT verifier now validates the token `aud` (audience) claim

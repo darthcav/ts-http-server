@@ -16,6 +16,10 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - `src/defaults/defaultPlugins.ts`: CORS now defaults to `origin: false` (same-origin only) instead
   of `origin: true`, which reflected every request `Origin`. Cross-origin access is opt-in via the
   new `cors` option.
+- `src/defaults/defaultErrorHandler.ts`: non-Boom (unexpected) errors no longer leak `error.message`
+  to the client. The real error is logged server-side via `request.log.error`, and the response
+  carries only the generic HTTP status reason phrase (e.g. `"Internal Server Error"`). Boom errors,
+  which have curated client-facing payloads, are unchanged.
 
 ### Changed
 

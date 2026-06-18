@@ -1,3 +1,4 @@
+import { STATUS_CODES } from "node:http"
 import type { Boom } from "@hapi/boom"
 import type { FastifyError, FastifyReply, FastifyRequest } from "fastify"
 
@@ -35,7 +36,10 @@ async function sendError(
  * - Otherwise — plain-text.
  *
  * For Boom errors the HTTP status code and payload come from `error.output`.
- * For generic errors a 500 is used unless the reply already has a 4xx/5xx status.
+ * For non-Boom errors a 500 is used unless the reply already has a valid
+ * 4xx/5xx status; the real error is logged via `request.log.error` and the
+ * client receives only the generic HTTP status reason phrase (e.g.
+ * `"Internal Server Error"`), so internal details are never leaked.
  *
  * @param error - The Fastify or Boom error that triggered the handler.
  * @param request - The Fastify request associated with the error.
@@ -67,13 +71,22 @@ export default async function defaultErrorHandler(
     if (!reply.statusCode || reply.statusCode < 400 || reply.statusCode > 599) {
         reply.status(500)
     }
+
+    // Log the real error server-side; never expose its message or stack to the
+    // client. The response carries only the generic HTTP status reason phrase,
+    // so non-Boom errors cannot leak internal details. Use Boom errors for
+    // intentional, client-facing messages.
+    request.log.error(`Unhandled error: ${error.stack ?? error.message}`)
+
+    const status = reply.statusCode
+    const safeMessage = STATUS_CODES[status] ?? "Internal Server Error"
     return sendError(
         reply,
         request,
         accept,
-        reply.statusCode,
-        error.message,
-        error,
-        JSON.stringify(error),
+        status,
+        safeMessage,
+        { statusCode: status, error: safeMessage, message: safeMessage },
+        safeMessage,
     )
 }

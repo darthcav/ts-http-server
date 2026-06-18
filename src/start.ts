@@ -20,15 +20,13 @@ main(pkg.name, logger, async () => {
     const keycloakUrl = env["KEYCLOAK_URL"]?.trim()
     const keycloakRealm = env["KEYCLOAK_REALM"]?.trim()
     const keycloakClientId = env["KEYCLOAK_CLIENT_ID"]?.trim()
-    const keycloakClientSecret = env["KEYCLOAK_CLIENT_SECRET"]?.trim()
 
     const keycloakAuth: KeycloakAuthConfig | undefined =
-        keycloakUrl && keycloakRealm && keycloakClientId && keycloakClientSecret
+        keycloakUrl && keycloakRealm && keycloakClientId
             ? {
                   url: keycloakUrl,
                   realm: keycloakRealm,
                   clientId: keycloakClientId,
-                  clientSecret: keycloakClientSecret,
               }
             : undefined
 

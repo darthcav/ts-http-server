@@ -67,7 +67,6 @@ suite("defaultPlugins", () => {
                 url: "https://auth.example.com",
                 realm: "test-realm",
                 clientId: "test-client",
-                clientSecret: "test-secret",
             },
         })
         const document = getSwaggerDocument(plugins)

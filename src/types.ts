@@ -27,10 +27,12 @@ export type KeycloakAuthConfig = {
     url: string
     /** Keycloak realm name. */
     realm: string
-    /** Client ID registered in the realm; used as the expected audience. */
+    /**
+     * Client ID registered in the realm. Used as the expected `aud` (audience)
+     * claim when verifying bearer tokens, so tokens minted for other clients in
+     * the same realm are rejected.
+     */
     clientId: string
-    /** Client secret for the registered client. */
-    clientSecret: string
 }
 
 /**

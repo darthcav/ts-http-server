@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Security
+
+- `src/auth/keycloak.ts`: the Keycloak JWT verifier now validates the token `aud` (audience) claim
+  against `config.clientId` and restricts the accepted signature algorithm to `RS256`, in addition
+  to the existing issuer and signature checks. Tokens minted for other clients in the same realm are
+  no longer accepted (audience-confusion / privilege-escalation fix).
+
+### Changed
+
+- **Breaking:** removed the unused `clientSecret` field from `KeycloakAuthConfig` (`src/types.ts`).
+  A JWKS-based resource server never used it; `KEYCLOAK_CLIENT_SECRET` is no longer read in
+  `src/start.ts` and is no longer required to enable Keycloak authentication.
+
 ## [0.8.0] - 2026-06-18
 
 ### Added

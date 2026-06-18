@@ -145,8 +145,7 @@ import { createKeycloakVerifier, type KeycloakAuthConfig } from "@darthcav/ts-ht
 const keycloakAuth: KeycloakAuthConfig = {
     url: process.env["KEYCLOAK_URL"] ?? "",
     realm: process.env["KEYCLOAK_REALM"] ?? "",
-    clientId: process.env["KEYCLOAK_CLIENT_ID"] ?? "",
-    clientSecret: process.env["KEYCLOAK_CLIENT_SECRET"] ?? "",
+    clientId: process.env["KEYCLOAK_CLIENT_ID"] ?? "",   // verified as the token audience
 }
 
 const verifyToken = createKeycloakVerifier(keycloakAuth)
@@ -248,15 +247,14 @@ docker build \
 
 Runtime environment variables:
 
-| Variable                 | Default     | Description                                                           |
-| ------------------------ | ----------- | --------------------------------------------------------------------- |
-| `HOST`                   | `localhost` | Bind address (use `0.0.0.0` in containers)                            |
-| `CONTAINER_EXPOSE_PORT`  | `8888`      | Port the server listens on                                            |
-| `API_AUTH_PATHS`         | unset       | Comma-separated picomatch globs for protected routes (e.g. `/api/**`) |
-| `KEYCLOAK_URL`           | unset       | Keycloak server base URL                                              |
-| `KEYCLOAK_REALM`         | unset       | Keycloak realm name; also used as the `WWW-Authenticate` realm label  |
-| `KEYCLOAK_CLIENT_ID`     | unset       | Client ID registered in the realm                                     |
-| `KEYCLOAK_CLIENT_SECRET` | unset       | Client secret for the registered client                               |
+| Variable                | Default     | Description                                                           |
+| ----------------------- | ----------- | --------------------------------------------------------------------- |
+| `HOST`                  | `localhost` | Bind address (use `0.0.0.0` in containers)                            |
+| `CONTAINER_EXPOSE_PORT` | `8888`      | Port the server listens on                                            |
+| `API_AUTH_PATHS`        | unset       | Comma-separated picomatch globs for protected routes (e.g. `/api/**`) |
+| `KEYCLOAK_URL`          | unset       | Keycloak server base URL                                              |
+| `KEYCLOAK_REALM`        | unset       | Keycloak realm name; also used as the `WWW-Authenticate` realm label  |
+| `KEYCLOAK_CLIENT_ID`    | unset       | Client ID registered in the realm; verified as the token `aud` claim  |
 
 ### Run
 

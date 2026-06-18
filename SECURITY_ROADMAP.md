@@ -12,15 +12,6 @@ Severity scale: 🔴 high · 🟠 medium · 🟡 low.
 
 ## Open items
 
-### 4. 🟠 `trustProxy: true` unconditionally
-
-- **Location:** `src/defaults/defaultFastifyOptions.ts:26`
-- **Risk:** trusting all proxies lets clients spoof `X-Forwarded-For` (hence `request.ip`, used in
-  access logs) when not strictly behind a trusted proxy.
-- **Fix:** make `trustProxy` configurable; default to `false` (or a known proxy CIDR / hop count)
-  rather than blanket `true`.
-- **Tests:** default value; override is honored.
-
 ### 5. 🟡 Log injection via raw `Referer` / `User-Agent`
 
 - **Location:** `src/hooks/onResponse.ts:28`
@@ -60,3 +51,6 @@ Severity scale: 🔴 high · 🟠 medium · 🟡 low.
 - **3. 🟠 Errors leaked internal messages** — fixed in `1e7062e` (merged to `dev` via `6c89645`).
   Non-Boom errors are logged server-side; the client receives only the generic HTTP status reason
   phrase. Boom errors unchanged.
+- **4. 🟠 `trustProxy: true` unconditionally** — fixed in `dcb66e4` (merged to `dev` via `11a224e`).
+  `trustProxy` now defaults to `false`; opt in via the `TRUST_PROXY` env var (boolean, hop count, or
+  IP/CIDR allowlist).

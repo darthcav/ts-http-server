@@ -32,6 +32,10 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   publish the full endpoint map and were reachable unauthenticated, are now gated behind a new
   `docs` option. It defaults to `true` unless `NODE_ENV === "production"`, where it defaults to
   `false`. `src/start.ts` reads a new `ENABLE_DOCS` env var (`true`/`false`) to override.
+- `src/defaults/defaultPlugins.ts`: removed `'unsafe-inline'` from the global Helmet CSP
+  `script-src`, which previously weakened XSS protection for every route. Swagger UI now emits its
+  own self-contained CSP scoped to the `/docs` routes (via the `staticCSP` option), so the relaxed
+  policy no longer applies app-wide.
 
 ### Changed
 

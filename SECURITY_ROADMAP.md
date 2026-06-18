@@ -12,15 +12,6 @@ Severity scale: 🔴 high · 🟠 medium · 🟡 low.
 
 ## Open items
 
-### 2. 🟠 CORS default reflects every origin
-
-- **Location:** `src/defaults/defaultPlugins.ts:149`
-- **Risk:** `@fastify/cors` is registered with `origin: true`, reflecting any `Origin`. An "allow
-  all origins" default is a footgun for a library.
-- **Fix:** make the CORS origin configurable (e.g. via `DefaultPluginsOptions` / env) and default to
-  a closed or explicit allowlist; document the setting.
-- **Tests:** allowed origin echoed, disallowed origin rejected, default behavior.
-
 ### 3. 🟠 Generic errors leak internal messages to clients
 
 - **Location:** `src/defaults/defaultErrorHandler.ts:70-78`
@@ -74,3 +65,6 @@ Severity scale: 🔴 high · 🟠 medium · 🟡 low.
 - **1. 🔴 JWT `audience` not validated** — fixed in `2bee191` (merged to `dev` via `57e527a`).
   Verifier now checks `audience` (`config.clientId`) and pins `algorithms: ["RS256"]`; unused
   `clientSecret` removed from `KeycloakAuthConfig`, `start.ts`, README, and `.env.example`.
+- **2. 🟠 CORS reflected every origin** — fixed in `809832c` (merged to `dev` via `993ae88`). CORS
+  now defaults to `{ origin: false }` (same-origin only); cross-origin is opt-in via the new
+  `DefaultPluginsOptions.cors` allowlist option.

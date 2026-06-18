@@ -1,3 +1,4 @@
+import type { FastifyCorsOptions } from "@fastify/cors"
 import type { Logger } from "@logtape/logtape"
 import type {
     FastifyPluginAsync,
@@ -174,6 +175,14 @@ export type DefaultPluginsOptions = {
     baseDir?: string | null
     /** Optional Keycloak configuration used to mark the generated `/api/` OpenAPI operations as OpenID Connect–protected. */
     keycloakAuth?: KeycloakAuthConfig
+    /**
+     * Options forwarded to `@fastify/cors`. Merged over a secure default of
+     * `{ origin: false }`, which disables cross-origin requests (same-origin
+     * only). To allow specific origins, set `cors: { origin: [...] }` with an
+     * explicit allowlist; avoid `origin: true` (reflects every origin) in
+     * production.
+     */
+    cors?: FastifyCorsOptions
 }
 
 /**

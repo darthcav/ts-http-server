@@ -74,6 +74,22 @@ to the parent of `import.meta.dirname`):
 const plugins = defaultPlugins({ locals, baseDir: import.meta.dirname })
 ```
 
+### CORS
+
+Cross-origin requests are **disabled by default** (`@fastify/cors` is configured with
+`origin: false`, i.e. same-origin only). To allow specific origins, pass a `cors` option — forwarded
+to `@fastify/cors` — with an explicit allowlist:
+
+```ts
+const plugins = defaultPlugins({
+    locals,
+    cors: { origin: ["https://app.example.com"], credentials: true },
+})
+```
+
+Avoid `origin: true` in production: it reflects any `Origin` header back, allowing every site to
+make cross-origin requests.
+
 Use `createMethodNotAllowedHandler` to answer the catch-all method route of a path with a
 `405 Method Not Allowed` response whose `Allow` header lists the permitted methods:
 

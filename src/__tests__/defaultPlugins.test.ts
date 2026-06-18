@@ -45,6 +45,23 @@ suite("defaultPlugins", () => {
         ok(plugins.has("@fastify/swagger-ui"))
     })
 
+    test("CORS defaults to origin: false (same-origin only)", () => {
+        const plugins = defaultPlugins({ locals })
+        const cors = plugins.get("@fastify/cors")
+        equal(cors?.opts?.["origin"], false)
+    })
+
+    test("CORS origin is configurable via the cors option", () => {
+        const allowlist = ["https://app.example.com"]
+        const plugins = defaultPlugins({
+            locals,
+            cors: { origin: allowlist, credentials: true },
+        })
+        const cors = plugins.get("@fastify/cors")
+        equal(cors?.opts?.["origin"], allowlist)
+        equal(cors?.opts?.["credentials"], true)
+    })
+
     test("keeps /api/ public in OpenAPI when keycloakAuth is omitted", () => {
         const plugins = defaultPlugins({ locals })
         const document = getSwaggerDocument(plugins)

@@ -28,6 +28,10 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   `Referer`, and `User-Agent`) are now sanitized — ASCII control characters, including CR and LF,
   are replaced with the Unicode replacement character `�`, so a crafted header can no longer forge
   or split log entries (CWE-117 log injection).
+- `src/defaults/defaultPlugins.ts`: Swagger UI (`/docs`) and the OpenAPI spec endpoints, which
+  publish the full endpoint map and were reachable unauthenticated, are now gated behind a new
+  `docs` option. It defaults to `true` unless `NODE_ENV === "production"`, where it defaults to
+  `false`. `src/start.ts` reads a new `ENABLE_DOCS` env var (`true`/`false`) to override.
 
 ### Changed
 

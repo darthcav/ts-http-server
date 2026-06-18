@@ -1,5 +1,6 @@
 import { readFileSync } from "node:fs"
 import { join } from "node:path"
+import { env } from "node:process"
 import FastifyAccepts from "@fastify/accepts"
 import FastifyCompress from "@fastify/compress"
 import FastifyCors from "@fastify/cors"
@@ -106,6 +107,9 @@ function configureApiDocumentAuth(
  *   folder; defaults to the parent of `import.meta.dirname`.
  * @param opts.keycloakAuth - Optional Keycloak configuration used to mark the
  *   generated `/api/` OpenAPI operations as OpenID Connect–protected.
+ * @param opts.docs - Whether to register Swagger UI (`/docs`) and the OpenAPI
+ *   spec endpoints. Defaults to `true` unless `NODE_ENV === "production"`, in
+ *   which case it defaults to `false` so the endpoint map is not published.
  * @returns A `Map` of plugin names to plugin entries, suitable for passing as
  *   the `plugins` field of `LauncherOptions`.
  */
@@ -113,30 +117,11 @@ export default function defaultPlugins(
     opts: DefaultPluginsOptions,
 ): Map<string, FSTPlugin> {
     const { locals, baseDir = null } = opts
+    const docs = opts.docs ?? env["NODE_ENV"] !== "production"
     const plugins = new Map<string, FSTPlugin>()
     const srcDir = baseDir
         ? join(baseDir, "src")
         : join(import.meta.dirname, "..")
-    const apiDoc = parse(
-        readFileSync(join(srcDir, "openapi", "api.yaml"), "utf8"),
-    ) as OpenAPIV3_1.Document
-    const schemas = apiDoc.components?.schemas
-    if (schemas) {
-        for (const key of Object.keys(schemas)) {
-            const schema = schemas[key]
-            if (schema && "$ref" in schema) {
-                const refPath = join(
-                    srcDir,
-                    "openapi",
-                    (schema as { $ref: string }).$ref,
-                )
-                schemas[key] = parse(
-                    readFileSync(refPath, "utf8"),
-                ) as OpenAPIV3_1.SchemaObject
-            }
-        }
-    }
-    configureApiDocumentAuth(apiDoc, opts.keycloakAuth)
 
     plugins.set("@fastify/accepts", {
         plugin: FastifyAccepts,
@@ -194,33 +179,59 @@ export default function defaultPlugins(
             prefix: "/",
         },
     })
-    plugins.set("@fastify/swagger", {
-        plugin: FastifySwagger,
-        opts: {
-            mode: "static",
-            specification: { document: apiDoc },
-            exposeRoute: true,
-        },
-    })
-    plugins.set("@fastify/swagger-ui", {
-        plugin: FastifySwaggerUi,
-        opts: {
-            routePrefix: "/docs",
-            uiConfig: {
-                deepLinking: true,
-                docExpansion: "list",
-                dom_id: "#swagger-ui",
-                jsonEditor: true,
-                showRequestHeaders: true,
-                tryItOutEnabled: false,
-                onComplete: () => {
-                    // @ts-expect-error — runs in browser context, not Node
-                    const topbar = document.querySelector("div.topbar")
-                    topbar?.remove()
+    // Swagger UI (`/docs`) and the OpenAPI spec publish the full endpoint map
+    // and are reachable unauthenticated, so they are only registered when
+    // `docs` is enabled (off by default in production).
+    if (docs) {
+        const apiDoc = parse(
+            readFileSync(join(srcDir, "openapi", "api.yaml"), "utf8"),
+        ) as OpenAPIV3_1.Document
+        const schemas = apiDoc.components?.schemas
+        if (schemas) {
+            for (const key of Object.keys(schemas)) {
+                const schema = schemas[key]
+                if (schema && "$ref" in schema) {
+                    const refPath = join(
+                        srcDir,
+                        "openapi",
+                        (schema as { $ref: string }).$ref,
+                    )
+                    schemas[key] = parse(
+                        readFileSync(refPath, "utf8"),
+                    ) as OpenAPIV3_1.SchemaObject
+                }
+            }
+        }
+        configureApiDocumentAuth(apiDoc, opts.keycloakAuth)
+
+        plugins.set("@fastify/swagger", {
+            plugin: FastifySwagger,
+            opts: {
+                mode: "static",
+                specification: { document: apiDoc },
+                exposeRoute: true,
+            },
+        })
+        plugins.set("@fastify/swagger-ui", {
+            plugin: FastifySwaggerUi,
+            opts: {
+                routePrefix: "/docs",
+                uiConfig: {
+                    deepLinking: true,
+                    docExpansion: "list",
+                    dom_id: "#swagger-ui",
+                    jsonEditor: true,
+                    showRequestHeaders: true,
+                    tryItOutEnabled: false,
+                    onComplete: () => {
+                        // @ts-expect-error — runs in browser context, not Node
+                        const topbar = document.querySelector("div.topbar")
+                        topbar?.remove()
+                    },
                 },
             },
-        },
-    })
+        })
+    }
 
     return plugins
 }

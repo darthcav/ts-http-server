@@ -151,11 +151,11 @@ export default function defaultPlugins(
                         "https://fonts.googleapis.com/",
                         "https://fonts.gstatic.com/",
                     ],
-                    scriptSrc: [
-                        "'self'",
-                        "'unsafe-inline'",
-                        "https://cdn.jsdelivr.net/",
-                    ],
+                    // No `'unsafe-inline'`: app routes only load external
+                    // scripts (by host). Swagger UI carries its own relaxed
+                    // CSP, scoped to `/docs` via the swagger-ui `staticCSP`
+                    // option, so the global policy stays strict.
+                    scriptSrc: ["'self'", "https://cdn.jsdelivr.net/"],
                 },
             },
             hsts: {
@@ -216,6 +216,11 @@ export default function defaultPlugins(
             plugin: FastifySwaggerUi,
             opts: {
                 routePrefix: "/docs",
+                // Emit a self-contained CSP on the `/docs` routes only (this
+                // hook is encapsulated to the route prefix). Swagger UI loads
+                // its scripts as static files, so `script-src 'self'` suffices
+                // and the global policy no longer needs `'unsafe-inline'`.
+                staticCSP: true,
                 uiConfig: {
                     deepLinking: true,
                     docExpansion: "list",

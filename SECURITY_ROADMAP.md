@@ -12,20 +12,6 @@ Severity scale: 🔴 high · 🟠 medium · 🟡 low.
 
 ## Open items
 
-### 1. 🔴 JWT `audience` is not validated (token confusion)
-
-- **Location:** `src/auth/keycloak.ts:37`
-- **Risk:** `jwtVerify(token, JWKS, { issuer })` checks only the issuer. `clientId` is documented as
-  the expected audience (`types.ts:30`) but never passed, so any token signed by the realm — issued
-  for _any_ client/audience — is accepted. Audience confusion / privilege escalation. No algorithm
-  allowlist either.
-- **Fix:**
-    - Pass `audience: config.clientId` and `algorithms: ["RS256"]` to `jwtVerify`.
-    - Re-evaluate the unused `clientSecret` field in `KeycloakAuthConfig` (`types.ts:33`): a JWKS
-      resource-server does not need it. Remove it or document why it exists.
-- **Tests:** add cases for valid-audience pass, wrong-audience reject, wrong-issuer reject,
-  unexpected-algorithm reject.
-
 ### 2. 🟠 CORS default reflects every origin
 
 - **Location:** `src/defaults/defaultPlugins.ts:149`
@@ -85,5 +71,6 @@ Severity scale: 🔴 high · 🟠 medium · 🟡 low.
 
 ## Completed
 
-_(none yet — move items here with the fixing commit/PR reference, then delete once verified and
-pushed)_
+- **1. 🔴 JWT `audience` not validated** — fixed in `2bee191` (merged to `dev` via `57e527a`).
+  Verifier now checks `audience` (`config.clientId`) and pins `algorithms: ["RS256"]`; unused
+  `clientSecret` removed from `KeycloakAuthConfig`, `start.ts`, README, and `.env.example`.

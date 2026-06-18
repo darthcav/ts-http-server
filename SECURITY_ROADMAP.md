@@ -12,15 +12,6 @@ Severity scale: 🔴 high · 🟠 medium · 🟡 low.
 
 ## Open items
 
-### 5. 🟡 Log injection via raw `Referer` / `User-Agent`
-
-- **Location:** `src/hooks/onResponse.ts:28`
-- **Risk:** attacker-controlled headers are concatenated into a single log line; embedded CR/LF
-  allows forged log entries (CWE-117).
-- **Fix:** strip/encode control characters from interpolated header values, or emit them as discrete
-  structured fields instead of concatenating into the message.
-- **Tests:** header containing `\n`/`\r` is sanitized in the emitted line.
-
 ### 6. 🟡 Swagger UI + full OpenAPI spec are public
 
 - **Location:** `src/defaults/defaultPlugins.ts:195-221`
@@ -54,3 +45,6 @@ Severity scale: 🔴 high · 🟠 medium · 🟡 low.
 - **4. 🟠 `trustProxy: true` unconditionally** — fixed in `dcb66e4` (merged to `dev` via `11a224e`).
   `trustProxy` now defaults to `false`; opt in via the `TRUST_PROXY` env var (boolean, hop count, or
   IP/CIDR allowlist).
+- **5. 🟡 Log injection via raw `Referer` / `User-Agent`** — fixed in `59e7b4b` (merged to `dev` via
+  `73118da`). The `onResponse` access-log line now sanitizes the URL, `Referer`, and `User-Agent`,
+  replacing ASCII control characters (incl. CR/LF) with `�` so headers cannot forge log entries.

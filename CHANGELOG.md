@@ -13,12 +13,18 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   against `config.clientId` and restricts the accepted signature algorithm to `RS256`, in addition
   to the existing issuer and signature checks. Tokens minted for other clients in the same realm are
   no longer accepted (audience-confusion / privilege-escalation fix).
+- `src/defaults/defaultPlugins.ts`: CORS now defaults to `origin: false` (same-origin only) instead
+  of `origin: true`, which reflected every request `Origin`. Cross-origin access is opt-in via the
+  new `cors` option.
 
 ### Changed
 
 - **Breaking:** removed the unused `clientSecret` field from `KeycloakAuthConfig` (`src/types.ts`).
   A JWKS-based resource server never used it; `KEYCLOAK_CLIENT_SECRET` is no longer read in
   `src/start.ts` and is no longer required to enable Keycloak authentication.
+- **Breaking:** `defaultPlugins` no longer enables permissive CORS by default. Cross-origin requests
+  are disabled unless an allowlist is supplied via the new `DefaultPluginsOptions.cors` option
+  (forwarded to `@fastify/cors`, merged over `{ origin: false }`).
 
 ## [0.8.0] - 2026-06-18
 

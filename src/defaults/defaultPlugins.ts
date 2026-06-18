@@ -146,7 +146,9 @@ export default function defaultPlugins(
     })
     plugins.set("@fastify/cors", {
         plugin: FastifyCors,
-        opts: { origin: true },
+        // Secure default: same-origin only. Callers opt in to cross-origin by
+        // passing `cors: { origin: [...] }` with an explicit allowlist.
+        opts: { origin: false, ...opts.cors },
     })
     plugins.set("@fastify/etag", {
         plugin: FastifyEtag,

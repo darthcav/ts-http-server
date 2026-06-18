@@ -12,13 +12,7 @@ Severity scale: 🔴 high · 🟠 medium · 🟡 low.
 
 ## Open items
 
-### 7. 🟡 CSP allows `'unsafe-inline'` scripts globally
-
-- **Location:** `src/defaults/defaultPlugins.ts:169`
-- **Risk:** `scriptSrc` includes `'unsafe-inline'` with `global: true`, weakening XSS protection for
-  the whole app rather than just Swagger UI.
-- **Fix:** use nonces/hashes, or scope the relaxed CSP to the `/docs` route only.
-- **Tests:** CSP header on app routes does not contain `'unsafe-inline'` in `script-src`.
+_None — all identified findings have been addressed._
 
 ---
 
@@ -42,3 +36,7 @@ Severity scale: 🔴 high · 🟠 medium · 🟡 low.
 - **6. 🟡 Swagger UI + full OpenAPI spec are public** — fixed in `a0ac53e` (merged to `dev` via
   `6625fd9`). `/docs` and the spec are now gated behind a new `docs` option that defaults to off
   when `NODE_ENV === "production"`; the `ENABLE_DOCS` env var overrides it.
+- **7. 🟡 CSP allows `'unsafe-inline'` scripts globally** — fixed in `b7dbe6e` (merged to `dev` via
+  `64efec5`). `'unsafe-inline'` was removed from the global Helmet `script-src`; Swagger UI now
+  emits its own self-contained CSP scoped to the `/docs` routes via the `staticCSP` option, so the
+  relaxed policy no longer applies app-wide.

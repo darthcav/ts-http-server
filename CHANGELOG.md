@@ -5,6 +5,49 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+## [0.9.0] - 2026-06-18
+
+### Security
+
+- `src/auth/keycloak.ts`: the Keycloak JWT verifier now validates the token `aud` (audience) claim
+  against `config.clientId` and restricts the accepted signature algorithm to `RS256`, in addition
+  to the existing issuer and signature checks. Tokens minted for other clients in the same realm are
+  no longer accepted (audience-confusion / privilege-escalation fix).
+- `src/defaults/defaultPlugins.ts`: CORS now defaults to `origin: false` (same-origin only) instead
+  of `origin: true`, which reflected every request `Origin`. Cross-origin access is opt-in via the
+  new `cors` option.
+- `src/defaults/defaultErrorHandler.ts`: non-Boom (unexpected) errors no longer leak `error.message`
+  to the client. The real error is logged server-side via `request.log.error`, and the response
+  carries only the generic HTTP status reason phrase (e.g. `"Internal Server Error"`). Boom errors,
+  which have curated client-facing payloads, are unchanged.
+- `src/defaults/defaultFastifyOptions.ts`: `trustProxy` now defaults to `false` instead of `true`,
+  so `X-Forwarded-For` (and `request.ip`) cannot be spoofed when the server is not behind a trusted
+  proxy. `src/start.ts` reads a new `TRUST_PROXY` env var (`true`/`false`, a hop count, or a
+  comma-separated IP/CIDR allowlist) to opt in.
+- `src/hooks/onResponse.ts`: client-controlled values in the access-log line (request URL,
+  `Referer`, and `User-Agent`) are now sanitized — ASCII control characters, including CR and LF,
+  are replaced with the Unicode replacement character `�`, so a crafted header can no longer forge
+  or split log entries (CWE-117 log injection).
+- `src/defaults/defaultPlugins.ts`: Swagger UI (`/docs`) and the OpenAPI spec endpoints, which
+  publish the full endpoint map and were reachable unauthenticated, are now gated behind a new
+  `docs` option. It defaults to `true` unless `NODE_ENV === "production"`, where it defaults to
+  `false`. `src/start.ts` reads a new `ENABLE_DOCS` env var (`true`/`false`) to override.
+- `src/defaults/defaultPlugins.ts`: removed `'unsafe-inline'` from the global Helmet CSP
+  `script-src`, which previously weakened XSS protection for every route. Swagger UI now emits its
+  own self-contained CSP scoped to the `/docs` routes (via the `staticCSP` option), so the relaxed
+  policy no longer applies app-wide.
+
+### Changed
+
+- **Breaking:** removed the unused `clientSecret` field from `KeycloakAuthConfig` (`src/types.ts`).
+  A JWKS-based resource server never used it; `KEYCLOAK_CLIENT_SECRET` is no longer read in
+  `src/start.ts` and is no longer required to enable Keycloak authentication.
+- **Breaking:** `defaultPlugins` no longer enables permissive CORS by default. Cross-origin requests
+  are disabled unless an allowlist is supplied via the new `DefaultPluginsOptions.cors` option
+  (forwarded to `@fastify/cors`, merged over `{ origin: false }`).
+
 ## [0.8.0] - 2026-06-18
 
 ### Added

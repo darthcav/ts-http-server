@@ -74,6 +74,22 @@ to the parent of `import.meta.dirname`):
 const plugins = defaultPlugins({ locals, baseDir: import.meta.dirname })
 ```
 
+### CORS
+
+Cross-origin requests are **disabled by default** (`@fastify/cors` is configured with
+`origin: false`, i.e. same-origin only). To allow specific origins, pass a `cors` option — forwarded
+to `@fastify/cors` — with an explicit allowlist:
+
+```ts
+const plugins = defaultPlugins({
+    locals,
+    cors: { origin: ["https://app.example.com"], credentials: true },
+})
+```
+
+Avoid `origin: true` in production: it reflects any `Origin` header back, allowing every site to
+make cross-origin requests.
+
 Use `createMethodNotAllowedHandler` to answer the catch-all method route of a path with a
 `405 Method Not Allowed` response whose `Allow` header lists the permitted methods:
 
@@ -145,8 +161,7 @@ import { createKeycloakVerifier, type KeycloakAuthConfig } from "@darthcav/ts-ht
 const keycloakAuth: KeycloakAuthConfig = {
     url: process.env["KEYCLOAK_URL"] ?? "",
     realm: process.env["KEYCLOAK_REALM"] ?? "",
-    clientId: process.env["KEYCLOAK_CLIENT_ID"] ?? "",
-    clientSecret: process.env["KEYCLOAK_CLIENT_SECRET"] ?? "",
+    clientId: process.env["KEYCLOAK_CLIENT_ID"] ?? "",   // verified as the token audience
 }
 
 const verifyToken = createKeycloakVerifier(keycloakAuth)
@@ -248,15 +263,27 @@ docker build \
 
 Runtime environment variables:
 
-| Variable                 | Default     | Description                                                           |
-| ------------------------ | ----------- | --------------------------------------------------------------------- |
-| `HOST`                   | `localhost` | Bind address (use `0.0.0.0` in containers)                            |
-| `CONTAINER_EXPOSE_PORT`  | `8888`      | Port the server listens on                                            |
-| `API_AUTH_PATHS`         | unset       | Comma-separated picomatch globs for protected routes (e.g. `/api/**`) |
-| `KEYCLOAK_URL`           | unset       | Keycloak server base URL                                              |
-| `KEYCLOAK_REALM`         | unset       | Keycloak realm name; also used as the `WWW-Authenticate` realm label  |
-| `KEYCLOAK_CLIENT_ID`     | unset       | Client ID registered in the realm                                     |
-| `KEYCLOAK_CLIENT_SECRET` | unset       | Client secret for the registered client                               |
+| Variable                | Default     | Description                                                           |
+| ----------------------- | ----------- | --------------------------------------------------------------------- |
+| `HOST`                  | `localhost` | Bind address (use `0.0.0.0` in containers)                            |
+| `CONTAINER_EXPOSE_PORT` | `8888`      | Port the server listens on                                            |
+| `TRUST_PROXY`           | `false`     | `true`/`false`, a hop count, or a comma-separated IP/CIDR allowlist   |
+| `ENABLE_DOCS`           | unset       | `true`/`false` to force Swagger UI (`/docs`) on/off; see note below   |
+| `API_AUTH_PATHS`        | unset       | Comma-separated picomatch globs for protected routes (e.g. `/api/**`) |
+| `KEYCLOAK_URL`          | unset       | Keycloak server base URL                                              |
+| `KEYCLOAK_REALM`        | unset       | Keycloak realm name; also used as the `WWW-Authenticate` realm label  |
+| `KEYCLOAK_CLIENT_ID`    | unset       | Client ID registered in the realm; verified as the token `aud` claim  |
+
+Proxy trust is **disabled by default** so `X-Forwarded-For` (and therefore `request.ip`, used in
+access logs) cannot be spoofed. Enable `TRUST_PROXY` only when the server runs behind a trusted
+reverse proxy — set it to the proxy hop count or an explicit IP/CIDR allowlist rather than `true`
+where possible.
+
+Swagger UI (`/docs`) and the OpenAPI spec publish the full endpoint map and are reachable without
+authentication, so they are **disabled by default when `NODE_ENV=production`** and enabled
+otherwise. Set `ENABLE_DOCS=true` to force them on (e.g. for a protected staging environment) or
+`ENABLE_DOCS=false` to force them off. When calling `defaultPlugins` directly, pass the equivalent
+`docs` boolean.
 
 ### Run
 
@@ -293,7 +320,7 @@ services:
 
 [node-version]: https://img.shields.io/badge/node-%3E%3D26-orange.svg?style=flat-square
 [node-url]: https://nodejs.org
-[version-image]: https://img.shields.io/badge/version-0.8.0-blue.svg?style=flat-square
+[version-image]: https://img.shields.io/badge/version-0.9.0-blue.svg?style=flat-square
 [ci-badge]: https://github.com/darthcav/ts-http-server/actions/workflows/tests.yml/badge.svg
 [coverage-badge]:
     https://codecov.io/github/darthcav/ts-http-server/branch/dev/graph/badge.svg?token=K8Q4T4N9SG

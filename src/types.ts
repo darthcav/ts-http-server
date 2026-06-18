@@ -1,3 +1,4 @@
+import type { FastifyCorsOptions } from "@fastify/cors"
 import type { Logger } from "@logtape/logtape"
 import type {
     FastifyPluginAsync,
@@ -27,10 +28,12 @@ export type KeycloakAuthConfig = {
     url: string
     /** Keycloak realm name. */
     realm: string
-    /** Client ID registered in the realm; used as the expected audience. */
+    /**
+     * Client ID registered in the realm. Used as the expected `aud` (audience)
+     * claim when verifying bearer tokens, so tokens minted for other clients in
+     * the same realm are rejected.
+     */
     clientId: string
-    /** Client secret for the registered client. */
-    clientSecret: string
 }
 
 /**
@@ -172,6 +175,22 @@ export type DefaultPluginsOptions = {
     baseDir?: string | null
     /** Optional Keycloak configuration used to mark the generated `/api/` OpenAPI operations as OpenID Connect–protected. */
     keycloakAuth?: KeycloakAuthConfig
+    /**
+     * Options forwarded to `@fastify/cors`. Merged over a secure default of
+     * `{ origin: false }`, which disables cross-origin requests (same-origin
+     * only). To allow specific origins, set `cors: { origin: [...] }` with an
+     * explicit allowlist; avoid `origin: true` (reflects every origin) in
+     * production.
+     */
+    cors?: FastifyCorsOptions
+    /**
+     * Whether to register Swagger UI (`/docs`) and the OpenAPI spec endpoints.
+     * These publish the full endpoint map and are reachable unauthenticated, so
+     * they are disabled in production by default. When omitted, defaults to
+     * `true` unless `NODE_ENV === "production"`, in which case it defaults to
+     * `false`. Set explicitly to override.
+     */
+    docs?: boolean
 }
 
 /**

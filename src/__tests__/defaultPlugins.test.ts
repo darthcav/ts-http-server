@@ -1,5 +1,5 @@
 import { equal, ok } from "node:assert/strict"
-import { cwd } from "node:process"
+import { cwd, env } from "node:process"
 import { suite, test } from "node:test"
 import type { OpenAPIV3_1 } from "openapi-types"
 import defaultPlugins from "../defaults/defaultPlugins.ts"
@@ -27,7 +27,7 @@ suite("defaultPlugins", () => {
     }
 
     test("returns all plugins using default baseDir", () => {
-        const plugins = defaultPlugins({ locals })
+        const plugins = defaultPlugins({ locals, docs: true })
         equal(plugins.size, 9)
         ok(plugins.has("@fastify/accepts"))
         ok(plugins.has("@fastify/view"))
@@ -37,7 +37,7 @@ suite("defaultPlugins", () => {
     })
 
     test("returns all plugins using explicit baseDir", () => {
-        const plugins = defaultPlugins({ locals, baseDir: cwd() })
+        const plugins = defaultPlugins({ locals, baseDir: cwd(), docs: true })
         equal(plugins.size, 9)
         ok(plugins.has("@fastify/view"))
         ok(plugins.has("@fastify/static"))
@@ -45,8 +45,44 @@ suite("defaultPlugins", () => {
         ok(plugins.has("@fastify/swagger-ui"))
     })
 
-    test("keeps /api/ public in OpenAPI when keycloakAuth is omitted", () => {
+    test("omits Swagger UI and the OpenAPI spec when docs is false", () => {
+        const plugins = defaultPlugins({ locals, docs: false })
+        equal(plugins.size, 7)
+        ok(!plugins.has("@fastify/swagger"))
+        ok(!plugins.has("@fastify/swagger-ui"))
+        // The non-docs plugins are still registered.
+        ok(plugins.has("@fastify/accepts"))
+        ok(plugins.has("@fastify/static"))
+    })
+
+    test("docs default follows NODE_ENV when the option is omitted", () => {
+        // The test env sets NODE_ENV=production (see .env.local / .env.example),
+        // so docs default to off and the swagger plugins are not registered.
         const plugins = defaultPlugins({ locals })
+        equal(env["NODE_ENV"], "production")
+        ok(!plugins.has("@fastify/swagger"))
+        ok(!plugins.has("@fastify/swagger-ui"))
+    })
+
+    test("CORS defaults to origin: false (same-origin only)", () => {
+        const plugins = defaultPlugins({ locals })
+        const cors = plugins.get("@fastify/cors")
+        equal(cors?.opts?.["origin"], false)
+    })
+
+    test("CORS origin is configurable via the cors option", () => {
+        const allowlist = ["https://app.example.com"]
+        const plugins = defaultPlugins({
+            locals,
+            cors: { origin: allowlist, credentials: true },
+        })
+        const cors = plugins.get("@fastify/cors")
+        equal(cors?.opts?.["origin"], allowlist)
+        equal(cors?.opts?.["credentials"], true)
+    })
+
+    test("keeps /api/ public in OpenAPI when keycloakAuth is omitted", () => {
+        const plugins = defaultPlugins({ locals, docs: true })
         const document = getSwaggerDocument(plugins)
 
         ok(document)
@@ -63,11 +99,11 @@ suite("defaultPlugins", () => {
     test("marks /api/ as OpenID Connect–protected in OpenAPI when keycloakAuth is provided", () => {
         const plugins = defaultPlugins({
             locals,
+            docs: true,
             keycloakAuth: {
                 url: "https://auth.example.com",
                 realm: "test-realm",
                 clientId: "test-client",
-                clientSecret: "test-secret",
             },
         })
         const document = getSwaggerDocument(plugins)

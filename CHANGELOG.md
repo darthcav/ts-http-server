@@ -5,7 +5,52 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.8.0] - 2026-06-18
+
+### Added
+
+- `src/handlers/methodNotAllowedHandler.ts`: `createMethodNotAllowedHandler(allowedMethods)` —
+  factory returning a Fastify route handler that responds `405 Method Not Allowed` with an `Allow`
+  header listing the permitted methods; exported from the public API and used by `defaultRoutes` for
+  the `/` and `/api/` catch-all method routes
+- `src/defaults/defaultRoutes.ts`: default `GET /health` (and `HEAD /health`) endpoint returning an
+  `application/health+json` report (IETF "Health Check Response Format for HTTP APIs") with service
+  `status`, version/release/service identifiers, `timestamp`, process `uptime`, `environment`
+  (Node.js version, platform, arch, pid, `NODE_ENV`), and `memory` usage; other methods respond
+  `405 Method Not Allowed`
+- `src/defaults/defaultRoutes.ts`: pluggable dependency health checks via
+  `defaultRoutes({ healthChecks })`. Checks run concurrently on each `/health` request, are grouped
+  into the IETF `checks` object keyed by `componentName:measurementName`, and a thrown check is
+  reported as `fail` with the error message in `output`. The overall `status` is the worst of all
+  checks (`fail` > `warn` > `pass`); the endpoint responds `200` for `pass`/`warn` and `503` for
+  `fail`
+- `src/types.ts`, `src/index.ts`: new exported types `HealthStatus`, `HealthCheck`,
+  `HealthCheckResult`, and `DefaultRoutesOptions`
+- `src/openapi/api.yaml`: documented the `/health` path under a new `health` tag, added the
+  `HealthStatus` schema (including the `checks` object), and the `503` response
+
+### Changed
+
+- `src/defaults/defaultRoutes.ts`: the two `/`-and-`/api/` 405 handlers now delegate to
+  `createMethodNotAllowedHandler` instead of duplicating the `Allow`-header-and-throw logic; the
+  `GET /` and `GET /api/` content-negotiation `switch` statements were simplified to guard clauses
+- `src/defaults/defaultPlugins.ts`: extracted the duplicated OpenAPI operation guard into a single
+  `isOperationObject` type guard
+- `src/launcher.ts`, `src/start.ts`: LogTape `Logger` calls now use LogTape's tagged-template syntax
+  (`` logger.error`...` ``) for structured logging, matching the convention in `@darthcav/ts-utils`
+  (the Fastify pino-style `request.log`/`reply.log` calls in the hooks are unchanged)
+- `src/defaults/getConsoleFastifyLogger.ts`: `name` parameter widened to `readonly string[]`, so
+  `defaultFastifyOptions` passes `logger.category` directly instead of copying it with a spread
+
+### Tests
+
+- `src/__tests__/methodNotAllowedHandler.test.ts`: new suite covering the `Allow` header contents
+  (multiple methods, single method) and the Boom `405` thrown by `createMethodNotAllowedHandler`
+- `src/__tests__/defaultRoutes.test.ts`: new cases covering `GET /health` (200
+  `application/health+json` with `status: "pass"` and environment fields, no `checks` when none
+  configured), `HEAD /health`, and the `405` responses for `DELETE`/`POST /health`; plus suites for
+  dependency checks — `503` aggregation with `pass`/`warn`/thrown (`fail`) checks, and `200`/`warn`
+  when the worst check is `warn`
 
 ## [0.7.2] - 2026-06-15
 
@@ -42,7 +87,7 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - `prettier` 3.8.3 → 3.8.4
 - `hasown` 2.0.3 → 2.0.4
 - `lru-cache` 11.5.0 → 11.5.1
-- `semver` → 7.8.4
+- `semver` 7.8.1 → 7.8.4
 - `package-lock.json`: added `libc: ["glibc"]` fields to platform-specific entries
 
 ## [0.7.1] - 2026-05-24

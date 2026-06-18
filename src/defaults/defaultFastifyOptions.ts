@@ -25,6 +25,6 @@ export default function defaultFastifyOptions(
         genReqId: () => randomUUID(),
         trustProxy: true,
         disableRequestLogging: true,
-        loggerInstance: getConsoleFastifyLogger([...logger.category]),
+        loggerInstance: getConsoleFastifyLogger(logger.category),
     }
 }

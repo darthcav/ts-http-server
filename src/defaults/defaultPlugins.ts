@@ -18,6 +18,14 @@ import type {
     KeycloakAuthConfig,
 } from "../types.ts"
 
+function isOperationObject(
+    operation: unknown,
+): operation is OpenAPIV3_1.OperationObject {
+    return (
+        !!operation && typeof operation === "object" && "responses" in operation
+    )
+}
+
 function configureApiDocumentAuth(
     apiDoc: OpenAPIV3_1.Document,
     keycloakAuth?: KeycloakAuthConfig,
@@ -45,11 +53,7 @@ function configureApiDocumentAuth(
         apiDoc.security = [{ openIdConnect: [] }]
 
         for (const operation of Object.values(apiPath)) {
-            if (
-                !operation ||
-                typeof operation !== "object" ||
-                !("responses" in operation)
-            ) {
+            if (!isOperationObject(operation)) {
                 continue
             }
 
@@ -75,11 +79,7 @@ function configureApiDocumentAuth(
         delete apiDoc.components.securitySchemes["openIdConnect"]
     }
     for (const operation of Object.values(apiPath)) {
-        if (
-            !operation ||
-            typeof operation !== "object" ||
-            !("responses" in operation)
-        ) {
+        if (!isOperationObject(operation)) {
             continue
         }
 

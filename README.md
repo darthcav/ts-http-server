@@ -18,6 +18,9 @@ A TypeScript wrapper HTTP server for Node.js >= 26 based upon [Fastify](https://
 - Default plugin set: accepts, CORS, compression, ETag, Helmet CSP, EJS views, static files,
   Swagger, and Swagger UI
 - Optional Keycloak-backed JWT authentication for the default `/api/` routes
+- Default `GET /health` endpoint reporting service status and runtime/environment information as
+  `application/health+json` (IETF Health Check Response Format), with pluggable dependency checks
+  that downgrade the status and return `503` on failure
 - Returns a `FastifyInstance` for graceful shutdown via `SIGINT`/`SIGTERM`
 - Biome for linting and formatting
 - Built-in Node.js test runner
@@ -52,11 +55,11 @@ main(pkg.name, logger, async () => {
             fastify
                 .close()
                 .then(() => {
-                    logger.error(`Server closed on ${signal}`)
+                    logger.error`Server closed on ${signal}`
                     process.exit(0)
                 })
                 .catch((error) => {
-                    logger.error(`Shutdown error: ${error}`)
+                    logger.error`Shutdown error: ${error}`
                     process.exit(1)
                 }),
         )
@@ -70,6 +73,64 @@ to the parent of `import.meta.dirname`):
 ```ts
 const plugins = defaultPlugins({ locals, baseDir: import.meta.dirname })
 ```
+
+Use `createMethodNotAllowedHandler` to answer the catch-all method route of a path with a
+`405 Method Not Allowed` response whose `Allow` header lists the permitted methods:
+
+```ts
+import { createMethodNotAllowedHandler } from "@darthcav/ts-http-server"
+
+routes.set("INDEX_405", {
+    method: ["DELETE", "PATCH", "POST", "PUT", "OPTIONS"],
+    url: "/",
+    handler: createMethodNotAllowedHandler(["GET", "HEAD"]), // Allow: GET, HEAD
+})
+```
+
+### Health checks
+
+The default `GET /health` route returns an `application/health+json` report following the IETF
+[Health Check Response Format for HTTP APIs][health-check-rfc]. By default it reports
+`status: "pass"` together with service metadata (`version`, `serviceId`, …), process `uptime`, and
+runtime `environment` and `memory` information.
+
+To monitor dependencies, pass `healthChecks` to `defaultRoutes`. Each check is an object with a
+`name` (conventionally `componentName:measurementName`) and a `run` function returning a
+`HealthCheckResult`; checks run concurrently on every request and a check that throws is reported as
+`fail`:
+
+```ts
+import { defaultRoutes, type HealthCheck } from "@darthcav/ts-http-server"
+
+const healthChecks: HealthCheck[] = [
+    {
+        name: "database:responseTime",
+        run: async () => {
+            const start = performance.now()
+            await db.query("SELECT 1")
+            return {
+                status: "pass",
+                componentType: "datastore",
+                observedValue: Math.round(performance.now() - start),
+                observedUnit: "ms",
+            }
+        },
+    },
+    {
+        name: "cache:availability",
+        run: async () => ({ status: (await cache.ping()) ? "pass" : "warn" }),
+    },
+]
+
+const routes = defaultRoutes({ healthChecks })
+```
+
+The results are grouped under the `checks` object keyed by `name`. The overall `status` is the worst
+of all check statuses (`fail` > `warn` > `pass`). The endpoint responds with HTTP `200` for `pass`
+and `warn`, and `503 Service Unavailable` for `fail`, so load balancers and orchestrators can probe
+it directly. `/health` is never matched by `authPaths`' default `/api/**` glob, so it stays public.
+
+[health-check-rfc]: https://datatracker.ietf.org/doc/html/draft-inadarei-api-health-check-06
 
 ### Keycloak authentication
 
@@ -153,6 +214,7 @@ src/
   types.ts          # Shared type definitions
   auth/             # Authentication utilities
   defaults/         # Default Fastify options, plugins, routes, and error handler
+  handlers/         # Reusable route handlers (e.g. createMethodNotAllowedHandler)
   hooks/            # Fastify hooks (preHandler, onResponse)
   __tests__/        # Test files
 dist/               # Compiled output (generated)
@@ -231,7 +293,7 @@ services:
 
 [node-version]: https://img.shields.io/badge/node-%3E%3D26-orange.svg?style=flat-square
 [node-url]: https://nodejs.org
-[version-image]: https://img.shields.io/badge/version-0.7.2-blue.svg?style=flat-square
+[version-image]: https://img.shields.io/badge/version-0.8.0-blue.svg?style=flat-square
 [ci-badge]: https://github.com/darthcav/ts-http-server/actions/workflows/tests.yml/badge.svg
 [coverage-badge]:
     https://codecov.io/github/darthcav/ts-http-server/branch/dev/graph/badge.svg?token=K8Q4T4N9SG

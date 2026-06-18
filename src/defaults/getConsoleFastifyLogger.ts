@@ -17,7 +17,7 @@ import {
  * @returns A Pino-compatible logger backed by LogTape.
  */
 export default function getConsoleFastifyLogger(
-    name: string[],
+    name: readonly string[],
     level: PinoLevel = "info",
 ): PinoLikeLogger {
     return getLogTapeFastifyLogger({

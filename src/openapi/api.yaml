@@ -16,9 +16,99 @@ servers:
 tags:
   - name: index
     description: Operations related to the root of the API
+  - name: health
+    description: Operations related to service health and status
 
 ##### Paths
 paths:
+  /health:
+    summary: Health and status routes
+    get:
+      operationId: getHealth
+      summary: Returns the service health and environment status
+      tags:
+        - health
+      responses:
+        200:
+          description: Health report (overall status `pass` or `warn`)
+          content:
+            application/health+json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+        503:
+          description: Health report when one or more checks fail (status `fail`)
+          content:
+            application/health+json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+    head:
+      operationId: headHealth
+      summary: Returns headers for the health endpoint
+      tags:
+        - health
+      responses:
+        200:
+          description: Empty response with headers
+    delete:
+      operationId: deleteHealth
+      summary: Not allowed on the health endpoint
+      tags:
+        - health
+      responses:
+        405:
+          description: Method not allowed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                405:
+                  $ref: "#/components/examples/http_405"
+    patch:
+      operationId: patchHealth
+      summary: Not allowed on the health endpoint
+      tags:
+        - health
+      responses:
+        405:
+          description: Method not allowed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                405:
+                  $ref: "#/components/examples/http_405"
+    post:
+      operationId: postHealth
+      summary: Not allowed on the health endpoint
+      tags:
+        - health
+      responses:
+        405:
+          description: Method not allowed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                405:
+                  $ref: "#/components/examples/http_405"
+    put:
+      operationId: putHealth
+      summary: Not allowed on the health endpoint
+      tags:
+        - health
+      responses:
+        405:
+          description: Method not allowed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                405:
+                  $ref: "#/components/examples/http_405"
   /api/:
     summary: API index routes
     get:
@@ -119,6 +209,105 @@ components:
         message:
           description: Welcome message text.
           type: string
+    HealthStatus:
+      type: object
+      description: |
+        Service health report following the IETF "Health Check Response Format
+        for HTTP APIs" draft, enriched with runtime/environment information.
+      required: [status]
+      properties:
+        status:
+          description: Overall service status indicator.
+          type: string
+          enum: [pass, warn, fail]
+        version:
+          description: Public version of the service.
+          type: string
+        releaseId:
+          description: Release identifier of the running build.
+          type: string
+        serviceId:
+          description: Unique identifier (name) of the service.
+          type: string
+        description:
+          description: Human-friendly description of the service.
+          type: string
+        timestamp:
+          description: ISO 8601 timestamp the report was generated.
+          type: string
+          format: date-time
+        uptime:
+          description: Process uptime in seconds.
+          type: number
+        checks:
+          description: |
+            Per-dependency check results, keyed by `componentName:measurementName`.
+            Each value is an array of check objects. Omitted when no checks are
+            configured.
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: object
+              required: [status]
+              properties:
+                status:
+                  description: Status of the checked component.
+                  type: string
+                  enum: [pass, warn, fail]
+                componentId:
+                  description: Unique identifier of the component instance.
+                  type: string
+                componentType:
+                  description: Type of component, e.g. datastore, system.
+                  type: string
+                observedValue:
+                  description: Observed value of the measurement.
+                observedUnit:
+                  description: Unit of the observed value, e.g. ms, s, %.
+                  type: string
+                output:
+                  description: Free-form output, typically an error message on fail.
+                  type: string
+                time:
+                  description: ISO 8601 time the check was evaluated.
+                  type: string
+                  format: date-time
+        environment:
+          description: Runtime environment information.
+          type: object
+          properties:
+            nodeVersion:
+              description: Node.js version running the process.
+              type: string
+            platform:
+              description: Operating system platform.
+              type: string
+            arch:
+              description: CPU architecture.
+              type: string
+            pid:
+              description: Process identifier.
+              type: integer
+            nodeEnv:
+              description: Value of the NODE_ENV environment variable.
+              type: string
+        memory:
+          description: Process memory usage in bytes.
+          type: object
+          properties:
+            rss:
+              description: Resident set size.
+              type: integer
+            heapTotal:
+              description: Total heap allocated.
+              type: integer
+            heapUsed:
+              description: Heap actually used.
+              type: integer
+            external:
+              description: Memory used by C++ objects bound to JS objects.
+              type: integer
   examples:
     http_400:
       value:

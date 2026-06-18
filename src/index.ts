@@ -8,6 +8,7 @@ import defaultErrorHandler from "./defaults/defaultErrorHandler.ts"
 import defaultFastifyOptions from "./defaults/defaultFastifyOptions.ts"
 import defaultPlugins from "./defaults/defaultPlugins.ts"
 import defaultRoutes from "./defaults/defaultRoutes.ts"
+import { createMethodNotAllowedHandler } from "./handlers/methodNotAllowedHandler.ts"
 import { createAuthPreHandler } from "./hooks/authPreHandler.ts"
 import onResponse from "./hooks/onResponse.ts"
 import preHandler from "./hooks/preHandler.ts"
@@ -16,7 +17,11 @@ import launcher from "./launcher.ts"
 export { createKeycloakVerifier } from "./auth/keycloak.ts"
 export type {
     DefaultPluginsOptions,
+    DefaultRoutesOptions,
     FSTPlugin,
+    HealthCheck,
+    HealthCheckResult,
+    HealthStatus,
     KeycloakAuthConfig,
     LauncherLocals,
     LauncherOptions,
@@ -25,6 +30,7 @@ export type {
 
 export {
     createAuthPreHandler,
+    createMethodNotAllowedHandler,
     defaultErrorHandler,
     defaultFastifyOptions,
     defaultPlugins,

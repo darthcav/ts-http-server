@@ -12,17 +12,6 @@ Severity scale: 🔴 high · 🟠 medium · 🟡 low.
 
 ## Open items
 
-### 3. 🟠 Generic errors leak internal messages to clients
-
-- **Location:** `src/defaults/defaultErrorHandler.ts:70-78`
-- **Risk:** for non-Boom errors, `error.message` is rendered into the HTML/plain error response,
-  leaking internal details (paths, connection strings, stack-adjacent info) on unexpected 5xx. Boom
-  errors are safe.
-- **Fix:** for the non-Boom 5xx branch, send a generic `"Internal Server Error"` message to the
-  client and `request.log.error` the real error/stack server-side.
-- **Tests:** unexpected error → 500 with generic message and no internal detail; Boom errors
-  unchanged.
-
 ### 4. 🟠 `trustProxy: true` unconditionally
 
 - **Location:** `src/defaults/defaultFastifyOptions.ts:26`
@@ -68,3 +57,6 @@ Severity scale: 🔴 high · 🟠 medium · 🟡 low.
 - **2. 🟠 CORS reflected every origin** — fixed in `809832c` (merged to `dev` via `993ae88`). CORS
   now defaults to `{ origin: false }` (same-origin only); cross-origin is opt-in via the new
   `DefaultPluginsOptions.cors` allowlist option.
+- **3. 🟠 Errors leaked internal messages** — fixed in `1e7062e` (merged to `dev` via `6c89645`).
+  Non-Boom errors are logged server-side; the client receives only the generic HTTP status reason
+  phrase. Boom errors unchanged.

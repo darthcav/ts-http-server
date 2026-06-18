@@ -9,7 +9,9 @@ import type { KeycloakAuthConfig, TokenVerifier } from "../types.ts"
  *
  * The verifier extracts the bearer token from the `Authorization` header,
  * verifies the JWT signature against the realm's public keys, and validates
- * the issuer claim. Any verification failure returns `false` without throwing.
+ * the issuer and audience (`config.clientId`) claims, restricting the accepted
+ * signature algorithm to `RS256`. Any verification failure returns `false`
+ * without throwing.
  *
  * @param config - Keycloak realm and client configuration.
  * @returns An async {@link TokenVerifier} that returns `true` if the bearer
@@ -34,7 +36,11 @@ export function createKeycloakVerifier(
         }
         const token = authorizationHeader.slice(7)
         try {
-            await jwtVerify(token, JWKS, { issuer })
+            await jwtVerify(token, JWKS, {
+                issuer,
+                audience: config.clientId,
+                algorithms: ["RS256"],
+            })
             return true
         } catch {
             return false

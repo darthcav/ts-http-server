@@ -18,7 +18,6 @@ suite("createKeycloakVerifier", () => {
         url: mockBaseUrl,
         realm: testRealm,
         clientId: "test-client",
-        clientSecret: "test-secret",
     }
 
     let privateKey!: CryptoKey
@@ -60,6 +59,7 @@ suite("createKeycloakVerifier", () => {
         return new SignJWT({})
             .setProtectedHeader({ alg: "RS256", kid: "test-key-1" })
             .setIssuer(issuer)
+            .setAudience(config.clientId)
             .setIssuedAt()
             .setExpirationTime("1h")
             .sign(privateKey)
@@ -86,6 +86,29 @@ suite("createKeycloakVerifier", () => {
         const token = await new SignJWT({})
             .setProtectedHeader({ alg: "RS256", kid: "test-key-1" })
             .setIssuer("https://wrong.example.com/realms/other")
+            .setIssuedAt()
+            .setExpirationTime("1h")
+            .sign(privateKey)
+        equal(await verify(`Bearer ${token}`), false)
+    })
+
+    test("returns false for a JWT with wrong audience", async () => {
+        const verify = createKeycloakVerifier(config)
+        const token = await new SignJWT({})
+            .setProtectedHeader({ alg: "RS256", kid: "test-key-1" })
+            .setIssuer(issuer)
+            .setAudience("some-other-client")
+            .setIssuedAt()
+            .setExpirationTime("1h")
+            .sign(privateKey)
+        equal(await verify(`Bearer ${token}`), false)
+    })
+
+    test("returns false for a JWT with no audience", async () => {
+        const verify = createKeycloakVerifier(config)
+        const token = await new SignJWT({})
+            .setProtectedHeader({ alg: "RS256", kid: "test-key-1" })
+            .setIssuer(issuer)
             .setIssuedAt()
             .setExpirationTime("1h")
             .sign(privateKey)

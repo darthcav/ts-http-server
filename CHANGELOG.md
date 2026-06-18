@@ -20,6 +20,10 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   to the client. The real error is logged server-side via `request.log.error`, and the response
   carries only the generic HTTP status reason phrase (e.g. `"Internal Server Error"`). Boom errors,
   which have curated client-facing payloads, are unchanged.
+- `src/defaults/defaultFastifyOptions.ts`: `trustProxy` now defaults to `false` instead of `true`,
+  so `X-Forwarded-For` (and `request.ip`) cannot be spoofed when the server is not behind a trusted
+  proxy. `src/start.ts` reads a new `TRUST_PROXY` env var (`true`/`false`, a hop count, or a
+  comma-separated IP/CIDR allowlist) to opt in.
 
 ### Changed
 

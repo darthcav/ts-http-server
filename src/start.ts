@@ -21,6 +21,18 @@ main(pkg.name, logger, async () => {
     const keycloakRealm = env["KEYCLOAK_REALM"]?.trim()
     const keycloakClientId = env["KEYCLOAK_CLIENT_ID"]?.trim()
 
+    // TRUST_PROXY: `true`/`false`, a hop count (e.g. `1`), or a comma-separated
+    // IP/CIDR allowlist (e.g. `127.0.0.1,10.0.0.0/8`). Defaults to disabled.
+    const trustProxyEnv = env["TRUST_PROXY"]?.trim()
+    const trustProxy: boolean | number | string | undefined =
+        !trustProxyEnv || trustProxyEnv === "false"
+            ? undefined
+            : trustProxyEnv === "true"
+              ? true
+              : /^\d+$/.test(trustProxyEnv)
+                ? Number(trustProxyEnv)
+                : trustProxyEnv
+
     const keycloakAuth: KeycloakAuthConfig | undefined =
         keycloakUrl && keycloakRealm && keycloakClientId
             ? {
@@ -48,6 +60,7 @@ main(pkg.name, logger, async () => {
         locals,
         plugins,
         routes,
+        ...(trustProxy !== undefined ? { opts: { trustProxy } } : {}),
         ...(keycloakAuth
             ? { verifyToken: createKeycloakVerifier(keycloakAuth) }
             : {}),

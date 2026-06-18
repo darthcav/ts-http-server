@@ -267,10 +267,16 @@ Runtime environment variables:
 | ----------------------- | ----------- | --------------------------------------------------------------------- |
 | `HOST`                  | `localhost` | Bind address (use `0.0.0.0` in containers)                            |
 | `CONTAINER_EXPOSE_PORT` | `8888`      | Port the server listens on                                            |
+| `TRUST_PROXY`           | `false`     | `true`/`false`, a hop count, or a comma-separated IP/CIDR allowlist   |
 | `API_AUTH_PATHS`        | unset       | Comma-separated picomatch globs for protected routes (e.g. `/api/**`) |
 | `KEYCLOAK_URL`          | unset       | Keycloak server base URL                                              |
 | `KEYCLOAK_REALM`        | unset       | Keycloak realm name; also used as the `WWW-Authenticate` realm label  |
 | `KEYCLOAK_CLIENT_ID`    | unset       | Client ID registered in the realm; verified as the token `aud` claim  |
+
+Proxy trust is **disabled by default** so `X-Forwarded-For` (and therefore `request.ip`, used in
+access logs) cannot be spoofed. Enable `TRUST_PROXY` only when the server runs behind a trusted
+reverse proxy — set it to the proxy hop count or an explicit IP/CIDR allowlist rather than `true`
+where possible.
 
 ### Run
 

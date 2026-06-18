@@ -11,8 +11,11 @@ import getConsoleFastifyLogger from "./getConsoleFastifyLogger.ts"
  * Built-in per-request logging is disabled in favor of the {@link preHandler}
  * and {@link onResponse} hooks, which emit structured access log lines.
  *
- * Generates request IDs via `crypto.randomUUID()` and enables proxy trust.
- * Callers may override any field by spreading their own options on top.
+ * Generates request IDs via `crypto.randomUUID()`. Proxy trust is **disabled**
+ * by default (`trustProxy: false`) so `X-Forwarded-For` cannot be spoofed when
+ * the server is not behind a trusted proxy; enable it (a boolean, hop count, or
+ * IP/CIDR list) only when running behind one. Callers may override any field by
+ * spreading their own options on top.
  *
  * @param logger - The application LogTape logger; its category is used as the
  *   base category for Fastify's own logger.
@@ -23,7 +26,7 @@ export default function defaultFastifyOptions(
 ): FastifyServerOptions {
     return {
         genReqId: () => randomUUID(),
-        trustProxy: true,
+        trustProxy: false,
         disableRequestLogging: true,
         loggerInstance: getConsoleFastifyLogger(logger.category),
     }

@@ -27,8 +27,8 @@ function sanitize(value: string): string {
  * Uses `reply.log.info` for 2xx/3xx and `reply.log.error` for 4xx/5xx,
  * so each log record is automatically correlated with the request ID assigned by Fastify.
  *
- * Client-controlled fields (URL, `Referer`, `User-Agent`) are sanitized via
- * {@link sanitize} so embedded control characters cannot forge log entries.
+ * Client-controlled fields (URL, `Referer`, `User-Agent`) are sanitized so
+ * embedded control characters cannot forge log entries (CWE-117).
  *
  * @param request - The completed Fastify request.
  * @param reply - The Fastify reply containing status, headers, and elapsed time.

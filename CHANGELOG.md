@@ -7,6 +7,41 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.9.1] - 2026-07-18
+
+Maintenance release: dependency and CI updates only; no functional changes.
+
+### Documentation
+
+- `src/hooks/onResponse.ts`: the JSDoc comment no longer `{@link}`s the private `sanitize` helper
+  (which is not part of the generated documentation), fixing a TypeDoc warning
+- `README.md`: version badge updated to 0.9.1
+
+### Dependencies
+
+- `@darthcav/ts-utils` 0.10.6 → 0.10.8
+- `fastify` 5.8.5 → 5.10.0
+- `@fastify/compress` 9.0.0 → 9.1.0
+- `@fastify/cors` 11.2.0 → 11.3.0
+- `@fastify/etag` 6.1.0 → 6.2.0
+- `@fastify/helmet` 13.0.2 → 13.1.0
+- `@fastify/static` 9.1.3 → 10.1.0
+- `@fastify/swagger` 9.7.0 → 9.8.1
+- `@fastify/swagger-ui` 6.0.0 → 6.1.0
+- `@logtape/fastify` 2.1.5 → 2.2.4
+- `@logtape/logtape` 2.1.5 → 2.2.4
+- `picomatch` 4.0.4 → 4.0.5
+- `@biomejs/biome` 2.5.0 → 2.5.4
+- `@types/node` 25.9.3 → 26.1.1
+- `prettier` 3.8.4 → 3.9.5
+- `typedoc` 0.28.19 → 0.28.20
+- `semver` 7.8.4 → 7.8.5 (transitive)
+
+### CI
+
+- `actions/checkout` v6 → v7 (all workflows)
+- `actions/setup-node` v6 → v7 (`tests.yml`, `gh-pages.yml`, `publish.yml`)
+
 ## [0.9.0] - 2026-06-18
 
 ### Security

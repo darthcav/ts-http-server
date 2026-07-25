@@ -7,6 +7,22 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Security
+
+- `package.json`: new `overrides` entry forces the `@fastify/static` copy nested under
+  `@fastify/swagger-ui` to the patched 10.1.2 release. `@fastify/swagger-ui` 6.1.0 still depends on
+  `@fastify/static` `^9.1.2`, and the 9.x line received no patch for
+  [GHSA-8pvw-jcv7-9cmj](https://github.com/advisories/GHSA-8pvw-jcv7-9cmj) (authorization bypass via
+  non-canonical URL paths) or
+  [GHSA-83w8-p2f5-377r](https://github.com/advisories/GHSA-83w8-p2f5-377r) (route guard bypass via
+  path traversal). `npm audit` is clean again
+
+### Tests
+
+- `src/__tests__/swaggerUi.test.ts`: new suite covering the `/docs` static assets, the OpenAPI JSON
+  document, and path-traversal rejection (plain and percent-encoded), guarding the overridden
+  `@fastify/static` resolution
+
 ## [0.9.1] - 2026-07-18
 
 Maintenance release: dependency and CI updates only; no functional changes.

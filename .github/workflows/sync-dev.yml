@@ -1,0 +1,43 @@
+##### GitHub CI configuration #####
+##### Keeps `dev` from drifting behind `main` after a release lands on `main`. #####
+
+name: Sync main into dev
+on:
+  push:
+    branches: [ main ]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    name: Open/update sync PR
+    steps:
+      - name: Ensure a main -> dev PR exists
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          PR_NUMBER=$(gh pr list --repo "$GITHUB_REPOSITORY" --base dev --head main --state open --json number --jq '.[0].number')
+          if [ -z "$PR_NUMBER" ]; then
+            CREATE_OUTPUT=$(gh pr create --repo "$GITHUB_REPOSITORY" --base dev --head main \
+              --title "chore: sync main into dev" \
+              --body "Automated sync opened after a push to \`main\`, so \`dev\` doesn't fall behind. New commits to \`main\` update this PR automatically. If GitHub reports conflicts, resolve them locally (merge \`main\` into \`dev\` and push), then close this PR." 2>&1) \
+              && CREATE_STATUS=0 || CREATE_STATUS=$?
+            if [ "$CREATE_STATUS" -ne 0 ]; then
+              if echo "$CREATE_OUTPUT" | grep -qi "No commits between"; then
+                echo "Nothing to sync (dev already matches main)."
+                exit 0
+              fi
+              echo "$CREATE_OUTPUT" >&2
+              exit "$CREATE_STATUS"
+            fi
+            PR_NUMBER=$(gh pr list --repo "$GITHUB_REPOSITORY" --base dev --head main --state open --json number --jq '.[0].number')
+          fi
+
+          # Merge immediately: `dev` has no branch protection/required checks to
+          # wait on, and `--auto` needs branch protection configured to work at
+          # all, so it would just leave the PR open forever. This content was
+          # already vetted on `main`, so there's nothing to gate on here.
+          gh pr merge "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" --merge

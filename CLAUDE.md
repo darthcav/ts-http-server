@@ -107,6 +107,14 @@ repository.
   `main` branch.
 - **`.github/workflows/publish.yml`** — Manual trigger for npm publishing; expects clean build.
 - **`.github/workflows/docker-publish.yml`** — Manual trigger for Docker image to GHCR.
+- **`.github/workflows/sync-dev.yml`** — Runs on every push to `main`: opens (and immediately
+  merges) a `main` → `dev` PR so `dev` doesn't drift behind. It merges right away rather than
+  relying on `--auto`/auto-merge, since `dev` has no branch-protection rules for that feature to
+  gate on. Requires the repository setting **"Allow GitHub Actions to create and approve pull
+  requests"** (Settings → Actions → General) — without it, `gh pr create` fails and `dev` silently
+  falls behind again.
+- **`.github/dependabot.yml`** — npm and GitHub Actions updates, `interval: monthly`, targeting
+  `dev`.
 
 ## Code Style
 

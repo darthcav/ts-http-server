@@ -7,21 +7,67 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.9.2] - 2026-08-15
+
+Maintenance release: `@fastify/static` security hardening, CI automation, and dependency updates; no
+functional changes to the public API.
+
 ### Security
 
-- `package.json`: new `overrides` entry forces the `@fastify/static` copy nested under
-  `@fastify/swagger-ui` to the patched 10.1.2 release. `@fastify/swagger-ui` 6.1.0 still depends on
-  `@fastify/static` `^9.1.2`, and the 9.x line received no patch for
+- The `@fastify/static` copy nested under `@fastify/swagger-ui` no longer resolves to the vulnerable
+  9.x line, which received no patch for
   [GHSA-8pvw-jcv7-9cmj](https://github.com/advisories/GHSA-8pvw-jcv7-9cmj) (authorization bypass via
   non-canonical URL paths) or
   [GHSA-83w8-p2f5-377r](https://github.com/advisories/GHSA-83w8-p2f5-377r) (route guard bypass via
-  path traversal). `npm audit` is clean again
+  path traversal). `@fastify/swagger-ui` 6.1.1 moved its requirement from `^9.1.2` to `^10.1.0`, so
+  the whole tree now dedupes to a single patched `@fastify/static` 10.1.3 and `npm audit` is clean
+  again. No `overrides` entry is needed in `package.json`
 
 ### Tests
 
 - `src/__tests__/swaggerUi.test.ts`: new suite covering the `/docs` static assets, the OpenAPI JSON
-  document, and path-traversal rejection (plain and percent-encoded), guarding the overridden
-  `@fastify/static` resolution
+  document, and path-traversal rejection (plain and percent-encoded), guarding the `@fastify/static`
+  resolution behind the Swagger UI routes
+
+### CI
+
+- `.github/workflows/sync-dev.yml`: new workflow that runs on every push to `main` and opens (and
+  immediately merges) a `main` → `dev` pull request, so `dev` no longer drifts behind after a
+  release. Requires the repository setting "Allow GitHub Actions to create and approve pull
+  requests" (Settings → Actions → General), which is now enabled
+- `.github/dependabot.yml`: npm and GitHub Actions update schedules changed from `weekly` to
+  `monthly`
+
+### Documentation
+
+- `CLAUDE.md`: CI/CD section documents `sync-dev.yml` (including the required repository setting)
+  and the monthly Dependabot schedule
+- `README.md`: version badge updated to 0.9.2
+
+### Dependencies
+
+- `@darthcav/ts-utils` 0.10.8 → 0.10.10
+- `@fastify/compress` 9.1.0 → 9.2.0
+- `@fastify/static` 10.1.0 → 10.1.3
+- `@fastify/swagger-ui` 6.1.0 → 6.1.1
+- `@logtape/fastify` 2.2.4 → 2.3.1
+- `@logtape/logtape` 2.2.4 → 2.3.1
+- `fastify` 5.10.0 → 5.12.0
+- `jose` 6.2.3 → 6.2.8
+- `@biomejs/biome` 2.5.4 → 2.5.8
+- `@types/node` 26.1.1 → 26.2.0
+- `prettier` 3.9.5 → 3.9.6
+- `@fastify/accept-negotiator` 2.0.1 → 2.1.0 (transitive)
+- `@fastify/ajv-compiler` 4.0.5 → 4.0.6 (transitive)
+- `@fastify/forwarded` 3.0.1 → 3.0.2 (transitive)
+- `@fastify/send` 4.1.0 → 4.1.1 (transitive)
+- `brace-expansion` 5.0.7 → 5.0.9 (transitive)
+- `fast-uri` 3.1.3 → 3.1.5 (transitive)
+- `find-my-way` 9.6.0 → 9.8.0 (transitive)
+- `ipaddr.js` 2.4.0 → 2.5.0 (transitive)
+- `mdurl` 2.0.0 → 2.1.0 (transitive)
+- `minimatch` 10.2.5 → 10.2.6 (transitive)
+- `process-warning` 5.0.0 → 5.1.0 (transitive)
 
 ## [0.9.1] - 2026-07-18
 

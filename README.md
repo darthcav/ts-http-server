@@ -267,7 +267,7 @@ Runtime environment variables:
 | ----------------------- | ----------- | --------------------------------------------------------------------- |
 | `HOST`                  | `localhost` | Bind address (use `0.0.0.0` in containers)                            |
 | `CONTAINER_EXPOSE_PORT` | `8888`      | Port the server listens on                                            |
-| `TRUST_PROXY`           | `false`     | `true`/`false`, a hop count, or a comma-separated IP/CIDR allowlist   |
+| `TRUST_PROXY`           | `false`     | `true`/`false`, or a comma-separated IP/CIDR allowlist                |
 | `ENABLE_DOCS`           | unset       | `true`/`false` to force Swagger UI (`/docs`) on/off; see note below   |
 | `API_AUTH_PATHS`        | unset       | Comma-separated picomatch globs for protected routes (e.g. `/api/**`) |
 | `KEYCLOAK_URL`          | unset       | Keycloak server base URL                                              |
@@ -276,8 +276,10 @@ Runtime environment variables:
 
 Proxy trust is **disabled by default** so `X-Forwarded-For` (and therefore `request.ip`, used in
 access logs) cannot be spoofed. Enable `TRUST_PROXY` only when the server runs behind a trusted
-reverse proxy — set it to the proxy hop count or an explicit IP/CIDR allowlist rather than `true`
-where possible.
+reverse proxy — set it to an explicit IP/CIDR allowlist rather than `true` where possible. Hop
+counts are not accepted: a hop count cannot validate the immediate peer, so Fastify fails closed on
+numeric `trustProxy` values; a numeric `TRUST_PROXY` is rejected with a warning and proxy trust
+stays disabled.
 
 Swagger UI (`/docs`) and the OpenAPI spec publish the full endpoint map and are reachable without
 authentication, so they are **disabled by default when `NODE_ENV=production`** and enabled
@@ -320,7 +322,7 @@ services:
 
 [node-version]: https://img.shields.io/badge/node-%3E%3D26-orange.svg?style=flat-square
 [node-url]: https://nodejs.org
-[version-image]: https://img.shields.io/badge/version-0.9.2-blue.svg?style=flat-square
+[version-image]: https://img.shields.io/badge/version-0.9.3-blue.svg?style=flat-square
 [ci-badge]: https://github.com/darthcav/ts-http-server/actions/workflows/tests.yml/badge.svg
 [coverage-badge]:
     https://codecov.io/github/darthcav/ts-http-server/branch/dev/graph/badge.svg?token=K8Q4T4N9SG

@@ -7,6 +7,13 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Documentation
+
+- `CLAUDE.md`: corrected the CI/CD section — `publish.yml` and `docker-publish.yml` are triggered
+  automatically by pushing a `v*` tag, not manually as previously documented. Also documented that
+  `v*` tags must be pushed in ascending version order, since `docker/metadata-action`'s moving tags
+  (`latest`, `{{major}}.{{minor}}`, `{{major}}`) are repointed by whichever run finishes last
+
 ## [0.9.3] - 2026-09-01
 
 Maintenance release: `TRUST_PROXY` no longer accepts a hop count (following Fastify 5.12.1) and

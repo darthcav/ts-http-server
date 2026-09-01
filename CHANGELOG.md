@@ -7,6 +7,67 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.9.3] - 2026-09-01
+
+Maintenance release: `TRUST_PROXY` no longer accepts a hop count (following Fastify 5.12.1) and
+dependency updates; no other changes to the public API.
+
+### Changed
+
+- `src/start.ts`: `TRUST_PROXY` no longer accepts a proxy hop count. Fastify 5.12.1 dropped `number`
+  from its `trustProxy` option type because a hop count cannot validate the immediate peer, and
+  fails closed on numeric values. A numeric `TRUST_PROXY` is now logged as a warning and leaves
+  proxy trust disabled; use `true` or an IP/CIDR allowlist instead. Fixes a `TS2379` build error
+  under `exactOptionalPropertyTypes`
+
+### Refactored
+
+- `src/config.ts`: new internal module exporting `readConfig(env)` — the environment-variable
+  parsing (`API_AUTH_PATHS`, `KEYCLOAK_URL`/`KEYCLOAK_REALM`/`KEYCLOAK_CLIENT_ID`, `TRUST_PROXY`,
+  `ENABLE_DOCS`, `HOST`, `CONTAINER_EXPOSE_PORT`) lifted out of `src/start.ts`. It is pure: it takes
+  the environment as an argument instead of reading `process.env`, and reports rejected values
+  through a returned `warnings` array instead of logging, which makes it unit-testable. `start.ts`
+  binds a listening server at import time, so none of this logic was reachable from `node:test`
+  before. Behaviour is unchanged — `authRealm` is still derived from `KEYCLOAK_REALM` alone, even
+  when the other Keycloak variables are absent
+- `src/start.ts`: consumes `readConfig(env)` and logs each returned warning as
+  `Configuration warning: …`. It is not re-exported from `src/index.ts`, so the public API is
+  unchanged
+
+### Tests
+
+- `src/__tests__/config.test.ts`: new suite (27 cases) covering `readConfig` — `TRUST_PROXY`
+  (`true`/`false`, unset, whitespace, IP/CIDR allowlists, and the rejected hop counts `0`, `1`, `42`
+  with their warning), `ENABLE_DOCS`, `API_AUTH_PATHS` splitting/trimming, the all-or-nothing
+  Keycloak config and the independent `authRealm`, the `HOST`/`CONTAINER_EXPOSE_PORT` defaults, and
+  the parser's purity. Includes an `asserttt` type-level assertion that `trustProxy` can no longer
+  be a `number`. `src/config.ts` is at 100% coverage
+
+### Documentation
+
+- `README.md`: the `TRUST_PROXY` row in the environment-variable table and the proxy-trust note no
+  longer mention hop counts, and document that a numeric value is rejected with a warning
+- `.github/copilot-instructions.md`: corrected the stale claim that `defaultFastifyOptions` enables
+  `trustProxy` — it has defaulted to `false` since 0.9.0, with opt-in via `TRUST_PROXY`; documented
+  `src/config.ts` in the architecture overview; corrected the CI description from Node 25 to Node 26
+- `CLAUDE.md`: documented `src/config.ts` under "Entrypoints & Runtime Bootstrapping"
+- `README.md`: version badge updated to 0.9.3
+
+### Dependencies
+
+- `@fastify/helmet` 13.1.0 → 13.1.1
+- `@logtape/fastify` 2.3.1 → 2.3.2
+- `@logtape/logtape` 2.3.1 → 2.3.2
+- `fastify` 5.12.0 → 5.12.1
+- `jose` 6.2.8 → 6.2.10
+- `picomatch` 4.0.5 → 4.0.7
+- `@biomejs/biome` 2.5.8 → 2.5.11
+- `@types/node` 26.2.0 → 26.4.0
+- `fast-uri` 3.1.5 → 3.1.6, 4.1.2 → 4.1.3 (transitive)
+- `fastq` 1.20.1 → 1.20.3 (transitive)
+- `find-my-way` 9.8.0 → 9.9.0 (transitive)
+- `markdown-it` 14.3.0 → 14.3.1 (transitive)
+
 ## [0.9.2] - 2026-08-15
 
 Maintenance release: `@fastify/static` security hardening, CI automation, and dependency updates; no

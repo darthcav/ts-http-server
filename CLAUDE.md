@@ -82,6 +82,9 @@ repository.
   source.
 - **`src/start.ts`** — Runtime/application entrypoint for `npm start`. Reads `package.json`, creates
   the logger via `@darthcav/ts-utils`, and invokes `main(...)`.
+- **`src/config.ts`** — `readConfig(env)`, the pure environment-variable parser used by `start.ts`.
+  Internal (not re-exported from `src/index.ts`); it never touches `process.env` or logs, returning
+  a `warnings` array the caller logs instead, which keeps it directly unit-testable.
 - **`src/launcher.ts`** — Customization point for application startup. Receives a logger and handles
   server startup, route registration, and other runtime wiring.
 

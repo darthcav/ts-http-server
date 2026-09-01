@@ -28,7 +28,7 @@
 - Lint with `npm run lint`; auto-fix with `npm run lint:fix`.
 - `npm run lint` uses Biome for code/config files and Prettier only for Markdown files.
 - Generate API docs with `npm run doc`.
-- CI in `.github/workflows/tests.yml` runs separate `lint`, `test`, and `coverage` jobs on Node 25,
+- CI in `.github/workflows/tests.yml` runs separate `lint`, `test`, and `coverage` jobs on Node 26,
   and the test jobs build first and copy `.env.example` to `.env.local`.
 
 ## High-level architecture
@@ -36,8 +36,13 @@
 - `src/index.ts` is the published library entrypoint. It re-exports the launcher, default Fastify
   wiring, hooks, and shared types.
 - `src/start.ts` is the runnable app entrypoint used by `npm start`. It creates the LogTape logger,
-  builds `locals`, gets the default plugin and route maps, starts the server with `launcher()`, and
-  installs `SIGINT` / `SIGTERM` shutdown handlers.
+  parses the environment with `readConfig(env)` from `src/config.ts`, logs any configuration
+  warnings it returns, builds `locals`, gets the default plugin and route maps, starts the server
+  with `launcher()`, and installs `SIGINT` / `SIGTERM` shutdown handlers.
+- `src/config.ts` exports `readConfig(env)`, a pure parser for the runtime environment variables
+  (`API_AUTH_PATHS`, `KEYCLOAK_*`, `TRUST_PROXY`, `ENABLE_DOCS`, `HOST`, `CONTAINER_EXPOSE_PORT`).
+  It is internal — not re-exported from `src/index.ts` — and reports rejected values through a
+  returned `warnings` array rather than logging itself.
 - `src/launcher.ts` is the composition root. It:
     - creates the Fastify instance by merging `defaultFastifyOptions(logger)` with caller overrides,
     - decorates `fastify.locals` and `fastify.verifyToken` plus any extra decorators,
@@ -47,9 +52,9 @@
     - installs the default 404 handler and `defaultErrorHandler`,
     - adds the shared `preHandler` and `onResponse` hooks,
     - starts listening and returns the `FastifyInstance`.
-- `src/defaults/defaultFastifyOptions.ts` disables Fastify's built-in request logging, enables
-  `trustProxy`, generates request IDs with `crypto.randomUUID()`, and routes Fastify logging through
-  LogTape.
+- `src/defaults/defaultFastifyOptions.ts` disables Fastify's built-in request logging, disables
+  `trustProxy` (opt in via the `TRUST_PROXY` env var), generates request IDs with
+  `crypto.randomUUID()`, and routes Fastify logging through LogTape.
 - `src/defaults/defaultPlugins.ts` defines the default plugin stack: `@fastify/accepts`, `compress`,
   `cors`, `etag`, `helmet`, `view`, `static`, `swagger`, and `swagger-ui`. It also loads
   `src/openapi/api.yaml`, inlines schema files from `src/openapi/schemas/`, serves Swagger UI at

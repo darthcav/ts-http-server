@@ -23,7 +23,7 @@
         "dist"
     ],
     "dependencies": {
-        "@darthcav/ts-utils": "0.10.10",
+        "@darthcav/ts-utils": "0.11.0",
         "@fastify/accepts": "5.0.6",
         "@fastify/compress": "9.2.0",
         "@fastify/cors": "11.3.0",

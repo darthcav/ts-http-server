@@ -7,12 +7,43 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Changed
+
+- `src/start.ts`: migrated to the `@darthcav/ts-utils` 0.11.0 `main` API, which replaced the
+  positional parameters with a `MainOptions` object. The launcher is now passed as
+  `{ launcher, defaultInterruptionHandler: false }`. Disabling the default `SIGINT`/`SIGTERM`
+  handler stops it from exiting the process while `start.ts` is still closing the Fastify server.
+  Before this change, both handlers ran on every signal. The positional call failed to compile
+  (`TS2559`) and throws a `TypeError` at runtime against 0.11.0
+- `src/start.ts`: a graceful shutdown on `SIGINT`/`SIGTERM` is now logged at `info` instead of
+  `error` level, matching ts-utils 0.11.0
+- `README.md`: the usage example follows the new `main(name, logger, options)` signature
+
+### Tests
+
+- The hand-rolled no-op loggers (cast with `as unknown as Logger`) in `csp`,
+  `defaultFastifyOptions`, `defaultRoutes`, `launcher`, `launcher.decorators`, and `swaggerUi` tests
+  are replaced by `getDummyLogger()` from `@darthcav/ts-utils`. Since 0.11.0 it returns a fully
+  typed `Logger` synchronously, so the casts are no longer needed
+
 ### Documentation
 
 - `CLAUDE.md`: corrected the CI/CD section — `publish.yml` and `docker-publish.yml` are triggered
   automatically by pushing a `v*` tag, not manually as previously documented. Also documented that
   `v*` tags must be pushed in ascending version order, since `docker/metadata-action`'s moving tags
   (`latest`, `{{major}}.{{minor}}`, `{{major}}`) are repointed by whichever run finishes last
+
+### Dependencies
+
+- `@darthcav/ts-utils` 0.10.10 → 0.11.0
+- `@fastify/accepts` 5.0.4 → 5.0.6
+- `@fastify/static` 10.1.3 → 10.1.5
+- `@fastify/swagger` 9.9.0 → 9.9.1
+- `@logtape/fastify` 2.3.2 → 2.3.10
+- `@logtape/logtape` 2.3.8 → 2.3.10
+- `yaml` 2.9.0 → 2.9.1
+- `@biomejs/biome` 2.5.14 → 2.5.15
+- `@types/node` 26.6.3 → 26.6.4
 
 ## [0.9.3] - 2026-09-01
 

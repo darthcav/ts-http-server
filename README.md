@@ -43,27 +43,31 @@ import pkg from "./package.json" with { type: "json" }
 
 const logger = await getConsoleLogger(pkg.name, "info")
 
-main(pkg.name, logger, async () => {
-    const locals = { pkg }
-    const plugins = defaultPlugins({ locals })
-    const routes = defaultRoutes()
+main(pkg.name, logger, {
+    // The launcher closes the server on SIGINT/SIGTERM itself
+    defaultInterruptionHandler: false,
+    launcher: async () => {
+        const locals = { pkg }
+        const plugins = defaultPlugins({ locals })
+        const routes = defaultRoutes()
 
-    const fastify = launcher({ logger, locals, plugins, routes })
+        const fastify = launcher({ logger, locals, plugins, routes })
 
-    for (const signal of ["SIGINT", "SIGTERM"] as const) {
-        process.on(signal, async (signal) =>
-            fastify
-                .close()
-                .then(() => {
-                    logger.error`Server closed on ${signal}`
-                    process.exit(0)
-                })
-                .catch((error) => {
-                    logger.error`Shutdown error: ${error}`
-                    process.exit(1)
-                }),
-        )
-    }
+        for (const signal of ["SIGINT", "SIGTERM"] as const) {
+            process.on(signal, async (signal) =>
+                fastify
+                    .close()
+                    .then(() => {
+                        logger.info`Server closed on ${signal}`
+                        process.exit(0)
+                    })
+                    .catch((error) => {
+                        logger.error`Shutdown error: ${error}`
+                        process.exit(1)
+                    }),
+            )
+        }
+    },
 })
 ```
 

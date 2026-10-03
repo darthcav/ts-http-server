@@ -1,17 +1,9 @@
 import { equal } from "node:assert/strict"
 import { suite, test } from "node:test"
-import type { Logger } from "@logtape/logtape"
+import { getDummyLogger } from "@darthcav/ts-utils"
 import defaultFastifyOptions from "../defaults/defaultFastifyOptions.ts"
 
-const noop = (): void => {}
-const testLogger = {
-    category: ["test"],
-    info: noop,
-    error: noop,
-    warn: noop,
-    debug: noop,
-    getChild: () => testLogger,
-} as unknown as Logger
+const testLogger = getDummyLogger()
 
 suite("defaultFastifyOptions", () => {
     test("disables proxy trust by default", () => {

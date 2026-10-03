@@ -3,7 +3,7 @@ import { request as httpRequest } from "node:http"
 import process from "node:process"
 import { after, before, suite, test } from "node:test"
 import { setTimeout } from "node:timers/promises"
-import type { Logger } from "@logtape/logtape"
+import { getDummyLogger } from "@darthcav/ts-utils"
 import type { FastifyInstance, RouteOptions } from "fastify"
 import defaultPlugins from "../defaults/defaultPlugins.ts"
 import defaultRoutes from "../defaults/defaultRoutes.ts"
@@ -17,15 +17,7 @@ suite("defaultRoutes [HTTP]", () => {
     // ---------------------------------------------------------------------------
     // Minimal test logger (no real I/O)
     // ---------------------------------------------------------------------------
-    const noop = (): void => {}
-    const testLogger = {
-        category: ["test"],
-        info: noop,
-        error: noop,
-        warn: noop,
-        debug: noop,
-        getChild: () => testLogger,
-    } as unknown as Logger
+    const testLogger = getDummyLogger()
 
     // ---------------------------------------------------------------------------
     // Error route for 500 testing
@@ -298,15 +290,7 @@ suite("defaultRoutes [HTTP]", () => {
 })
 
 suite("defaultRoutes [HTTP] with authPaths=['/api/**'] and mock verifyToken", () => {
-    const noop = (): void => {}
-    const testLogger = {
-        category: ["test"],
-        info: noop,
-        error: noop,
-        warn: noop,
-        debug: noop,
-        getChild: () => testLogger,
-    } as unknown as Logger
+    const testLogger = getDummyLogger()
 
     const locals = {
         pkg: {
@@ -401,15 +385,7 @@ suite("defaultRoutes [HTTP] with authPaths=['/api/**'] and mock verifyToken", ()
 })
 
 suite("defaultRoutes [HTTP] with authPaths and custom authRealm", () => {
-    const noop = (): void => {}
-    const testLogger = {
-        category: ["test"],
-        info: noop,
-        error: noop,
-        warn: noop,
-        debug: noop,
-        getChild: () => testLogger,
-    } as unknown as Logger
+    const testLogger = getDummyLogger()
 
     const locals = {
         pkg: {
@@ -455,15 +431,7 @@ suite("defaultRoutes [HTTP] with authPaths and custom authRealm", () => {
 })
 
 suite("defaultRoutes [HTTP] with no authPaths (auth disabled)", () => {
-    const noop = (): void => {}
-    const testLogger = {
-        category: ["test"],
-        info: noop,
-        error: noop,
-        warn: noop,
-        debug: noop,
-        getChild: () => testLogger,
-    } as unknown as Logger
+    const testLogger = getDummyLogger()
 
     const locals = {
         pkg: { name: "ts-http-server", version: "0.0.0", description: "Test" },
@@ -519,15 +487,7 @@ suite("defaultRoutes [HTTP] with no authPaths (auth disabled)", () => {
 // ---------------------------------------------------------------------------
 
 suite("defaultRoutes [HTTP] /health with dependency checks", () => {
-    const noop = (): void => {}
-    const testLogger = {
-        category: ["test"],
-        info: noop,
-        error: noop,
-        warn: noop,
-        debug: noop,
-        getChild: () => testLogger,
-    } as unknown as Logger
+    const testLogger = getDummyLogger()
 
     const locals = {
         pkg: { name: "ts-http-server", version: "0.0.0", description: "Test" },
@@ -625,15 +585,7 @@ suite("defaultRoutes [HTTP] /health with dependency checks", () => {
 })
 
 suite("defaultRoutes [HTTP] /health with only passing/warning checks", () => {
-    const noop = (): void => {}
-    const testLogger = {
-        category: ["test"],
-        info: noop,
-        error: noop,
-        warn: noop,
-        debug: noop,
-        getChild: () => testLogger,
-    } as unknown as Logger
+    const testLogger = getDummyLogger()
 
     const locals = {
         pkg: { name: "ts-http-server", version: "0.0.0", description: "Test" },

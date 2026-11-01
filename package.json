@@ -32,7 +32,7 @@
         "@fastify/static": "10.1.5",
         "@fastify/swagger": "9.9.1",
         "@fastify/swagger-ui": "6.1.1",
-        "@fastify/view": "12.0.0",
+        "@fastify/view": "12.0.1",
         "@hapi/boom": "10.0.1",
         "@logtape/fastify": "2.3.10",
         "@logtape/logtape": "2.3.10",

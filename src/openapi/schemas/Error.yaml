@@ -4,7 +4,7 @@ $schema: https://json-schema.org/draft/2020-12/schema
 title: Error schema for the APIs
 description: Error model for the APIs
 type: object
-required: [ message ]
+required: [message]
 properties:
   message:
     description: Error message.

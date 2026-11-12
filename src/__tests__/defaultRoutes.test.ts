@@ -3,7 +3,7 @@ import { request as httpRequest } from "node:http"
 import process from "node:process"
 import { after, before, suite, test } from "node:test"
 import { setTimeout } from "node:timers/promises"
-import type { Logger } from "@logtape/logtape"
+import { getDummyLogger } from "@darthcav/ts-utils"
 import type { FastifyInstance, RouteOptions } from "fastify"
 import defaultPlugins from "../defaults/defaultPlugins.ts"
 import defaultRoutes from "../defaults/defaultRoutes.ts"
@@ -17,15 +17,7 @@ suite("defaultRoutes [HTTP]", () => {
     // ---------------------------------------------------------------------------
     // Minimal test logger (no real I/O)
     // ---------------------------------------------------------------------------
-    const noop = (): void => {}
-    const testLogger = {
-        category: ["test"],
-        info: noop,
-        error: noop,
-        warn: noop,
-        debug: noop,
-        getChild: () => testLogger,
-    } as unknown as Logger
+    const testLogger = getDummyLogger()
 
     // ---------------------------------------------------------------------------
     // Error route for 500 testing
@@ -297,122 +289,103 @@ suite("defaultRoutes [HTTP]", () => {
     })
 })
 
-suite(
-    "defaultRoutes [HTTP] with authPaths=['/api/**'] and mock verifyToken",
-    () => {
-        const noop = (): void => {}
-        const testLogger = {
-            category: ["test"],
-            info: noop,
-            error: noop,
-            warn: noop,
-            debug: noop,
-            getChild: () => testLogger,
-        } as unknown as Logger
+suite("defaultRoutes [HTTP] with authPaths=['/api/**'] and mock verifyToken", () => {
+    const testLogger = getDummyLogger()
 
-        const locals = {
-            pkg: {
-                name: "ts-http-server",
-                version: "0.0.0",
-                description: "Test",
-            },
+    const locals = {
+        pkg: {
+            name: "ts-http-server",
+            version: "0.0.0",
+            description: "Test",
+        },
+    }
+
+    const port = 19004
+    const base = `http://localhost:${port}`
+    let server: FastifyInstance
+
+    before(async () => {
+        const plugins = defaultPlugins({ locals })
+        // Mock verifyToken: accepts only "Bearer test-token"
+        const verifyToken = async (
+            authorizationHeader: string | undefined,
+        ): Promise<boolean> => authorizationHeader === "Bearer test-token"
+
+        server = launcher({
+            logger: testLogger,
+            locals: { ...locals, port, authPaths: ["/api/**"] },
+            plugins,
+            routes: defaultRoutes(),
+            verifyToken,
+            opts: { disableRequestLogging: true },
+        })
+        await setTimeout(1000)
+    })
+
+    after(async () => {
+        await setTimeout(500)
+        await server.close()
+    })
+
+    test("GET /api/ without Authorization → 401 Unauthorized", async () => {
+        const res = await fetch(`${base}/api/`, {
+            headers: { accept: "application/json" },
+        })
+        const body = (await res.json()) as {
+            statusCode: number
+            error: string
+            message: string
         }
+        equal(res.status, 401)
+        equal(res.headers.get("www-authenticate"), 'Bearer realm="api"')
+        match(res.headers.get("content-type") ?? "", /application\/json/)
+        equal(body.statusCode, 401)
+        equal(body.error, "Unauthorized")
+    })
 
-        const port = 19004
-        const base = `http://localhost:${port}`
-        let server: FastifyInstance
-
-        before(async () => {
-            const plugins = defaultPlugins({ locals })
-            // Mock verifyToken: accepts only "Bearer test-token"
-            const verifyToken = async (
-                authorizationHeader: string | undefined,
-            ): Promise<boolean> => authorizationHeader === "Bearer test-token"
-
-            server = launcher({
-                logger: testLogger,
-                locals: { ...locals, port, authPaths: ["/api/**"] },
-                plugins,
-                routes: defaultRoutes(),
-                verifyToken,
-                opts: { disableRequestLogging: true },
-            })
-            await setTimeout(1000)
+    test("GET /api/ with invalid Authorization → 401 Unauthorized", async () => {
+        const res = await fetch(`${base}/api/`, {
+            headers: {
+                accept: "application/json",
+                authorization: "Bearer wrong-token",
+            },
         })
+        equal(res.status, 401)
+        equal(res.headers.get("www-authenticate"), 'Bearer realm="api"')
+    })
 
-        after(async () => {
-            await setTimeout(500)
-            await server.close()
+    test("GET /api/ with valid Authorization → 200 welcome message", async () => {
+        const res = await fetch(`${base}/api/`, {
+            headers: {
+                accept: "application/json",
+                authorization: "Bearer test-token",
+            },
         })
+        const body = (await res.json()) as { message: string }
+        equal(res.status, 200)
+        match(res.headers.get("content-type") ?? "", /application\/json/)
+        ok(typeof body.message === "string")
+    })
 
-        test("GET /api/ without Authorization → 401 Unauthorized", async () => {
-            const res = await fetch(`${base}/api/`, {
-                headers: { accept: "application/json" },
-            })
-            const body = (await res.json()) as {
-                statusCode: number
-                error: string
-                message: string
-            }
-            equal(res.status, 401)
-            equal(res.headers.get("www-authenticate"), 'Bearer realm="api"')
-            match(res.headers.get("content-type") ?? "", /application\/json/)
-            equal(body.statusCode, 401)
-            equal(body.error, "Unauthorized")
+    test("DELETE /api/ with valid Authorization → 405 Method Not Allowed", async () => {
+        const res = await fetch(`${base}/api/`, {
+            method: "DELETE",
+            headers: { authorization: "Bearer test-token" },
         })
+        equal(res.status, 405)
+        equal(res.headers.get("allow"), "GET, HEAD")
+    })
 
-        test("GET /api/ with invalid Authorization → 401 Unauthorized", async () => {
-            const res = await fetch(`${base}/api/`, {
-                headers: {
-                    accept: "application/json",
-                    authorization: "Bearer wrong-token",
-                },
-            })
-            equal(res.status, 401)
-            equal(res.headers.get("www-authenticate"), 'Bearer realm="api"')
+    test("GET / without Authorization → 200 (non-protected path)", async () => {
+        const res = await fetch(`${base}/`, {
+            headers: { accept: "text/html" },
         })
-
-        test("GET /api/ with valid Authorization → 200 welcome message", async () => {
-            const res = await fetch(`${base}/api/`, {
-                headers: {
-                    accept: "application/json",
-                    authorization: "Bearer test-token",
-                },
-            })
-            const body = (await res.json()) as { message: string }
-            equal(res.status, 200)
-            match(res.headers.get("content-type") ?? "", /application\/json/)
-            ok(typeof body.message === "string")
-        })
-
-        test("DELETE /api/ with valid Authorization → 405 Method Not Allowed", async () => {
-            const res = await fetch(`${base}/api/`, {
-                method: "DELETE",
-                headers: { authorization: "Bearer test-token" },
-            })
-            equal(res.status, 405)
-            equal(res.headers.get("allow"), "GET, HEAD")
-        })
-
-        test("GET / without Authorization → 200 (non-protected path)", async () => {
-            const res = await fetch(`${base}/`, {
-                headers: { accept: "text/html" },
-            })
-            equal(res.status, 200)
-        })
-    },
-)
+        equal(res.status, 200)
+    })
+})
 
 suite("defaultRoutes [HTTP] with authPaths and custom authRealm", () => {
-    const noop = (): void => {}
-    const testLogger = {
-        category: ["test"],
-        info: noop,
-        error: noop,
-        warn: noop,
-        debug: noop,
-        getChild: () => testLogger,
-    } as unknown as Logger
+    const testLogger = getDummyLogger()
 
     const locals = {
         pkg: {
@@ -458,15 +431,7 @@ suite("defaultRoutes [HTTP] with authPaths and custom authRealm", () => {
 })
 
 suite("defaultRoutes [HTTP] with no authPaths (auth disabled)", () => {
-    const noop = (): void => {}
-    const testLogger = {
-        category: ["test"],
-        info: noop,
-        error: noop,
-        warn: noop,
-        debug: noop,
-        getChild: () => testLogger,
-    } as unknown as Logger
+    const testLogger = getDummyLogger()
 
     const locals = {
         pkg: { name: "ts-http-server", version: "0.0.0", description: "Test" },
@@ -522,15 +487,7 @@ suite("defaultRoutes [HTTP] with no authPaths (auth disabled)", () => {
 // ---------------------------------------------------------------------------
 
 suite("defaultRoutes [HTTP] /health with dependency checks", () => {
-    const noop = (): void => {}
-    const testLogger = {
-        category: ["test"],
-        info: noop,
-        error: noop,
-        warn: noop,
-        debug: noop,
-        getChild: () => testLogger,
-    } as unknown as Logger
+    const testLogger = getDummyLogger()
 
     const locals = {
         pkg: { name: "ts-http-server", version: "0.0.0", description: "Test" },
@@ -628,15 +585,7 @@ suite("defaultRoutes [HTTP] /health with dependency checks", () => {
 })
 
 suite("defaultRoutes [HTTP] /health with only passing/warning checks", () => {
-    const noop = (): void => {}
-    const testLogger = {
-        category: ["test"],
-        info: noop,
-        error: noop,
-        warn: noop,
-        debug: noop,
-        getChild: () => testLogger,
-    } as unknown as Logger
+    const testLogger = getDummyLogger()
 
     const locals = {
         pkg: { name: "ts-http-server", version: "0.0.0", description: "Test" },

@@ -1,4 +1,5 @@
 {
+    "$schema": "https://biomejs.dev/schemas/2.6.7/schema.json",
     "files": {
         "includes": ["src/**", "*.json", "!package-lock.json"]
     },
@@ -13,6 +14,12 @@
             "semicolons": "asNeeded"
         }
     },
+    "yaml": {
+        "formatter": {
+            "bracketSpacing": false,
+            "indentWidth": 2
+        }
+    },
     "linter": {
         "rules": {
             "preset": "recommended",
@@ -20,9 +27,7 @@
                 "useLiteralKeys": "off"
             },
             "style": {
-                "useBlockStatements": "error"
-            },
-            "nursery": {
+                "useBlockStatements": "error",
                 "useImportsFirst": "error"
             }
         }

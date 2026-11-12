@@ -43,27 +43,31 @@ import pkg from "./package.json" with { type: "json" }
 
 const logger = await getConsoleLogger(pkg.name, "info")
 
-main(pkg.name, logger, async () => {
-    const locals = { pkg }
-    const plugins = defaultPlugins({ locals })
-    const routes = defaultRoutes()
+main(pkg.name, logger, {
+    // The launcher closes the server on SIGINT/SIGTERM itself
+    defaultInterruptionHandler: false,
+    launcher: async () => {
+        const locals = { pkg }
+        const plugins = defaultPlugins({ locals })
+        const routes = defaultRoutes()
 
-    const fastify = launcher({ logger, locals, plugins, routes })
+        const fastify = launcher({ logger, locals, plugins, routes })
 
-    for (const signal of ["SIGINT", "SIGTERM"] as const) {
-        process.on(signal, async (signal) =>
-            fastify
-                .close()
-                .then(() => {
-                    logger.error`Server closed on ${signal}`
-                    process.exit(0)
-                })
-                .catch((error) => {
-                    logger.error`Shutdown error: ${error}`
-                    process.exit(1)
-                }),
-        )
-    }
+        for (const signal of ["SIGINT", "SIGTERM"] as const) {
+            process.on(signal, async (signal) =>
+                fastify
+                    .close()
+                    .then(() => {
+                        logger.info`Server closed on ${signal}`
+                        process.exit(0)
+                    })
+                    .catch((error) => {
+                        logger.error`Shutdown error: ${error}`
+                        process.exit(1)
+                    }),
+            )
+        }
+    },
 })
 ```
 
@@ -322,7 +326,7 @@ services:
 
 [node-version]: https://img.shields.io/badge/node-%3E%3D26-orange.svg?style=flat-square
 [node-url]: https://nodejs.org
-[version-image]: https://img.shields.io/badge/version-0.9.3-blue.svg?style=flat-square
+[version-image]: https://img.shields.io/badge/version-0.9.4-blue.svg?style=flat-square
 [ci-badge]: https://github.com/darthcav/ts-http-server/actions/workflows/tests.yml/badge.svg
 [coverage-badge]:
     https://codecov.io/github/darthcav/ts-http-server/branch/dev/graph/badge.svg?token=K8Q4T4N9SG

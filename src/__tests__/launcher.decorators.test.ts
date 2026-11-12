@@ -1,8 +1,8 @@
 import { equal, ok } from "node:assert/strict"
 import { after, before, suite, test } from "node:test"
 import { setTimeout } from "node:timers/promises"
+import { getDummyLogger } from "@darthcav/ts-utils"
 import FastifyAccepts from "@fastify/accepts"
-import type { Logger } from "@logtape/logtape"
 import type { FastifyInstance, RouteOptions } from "fastify"
 import launcher from "../launcher.ts"
 import type { FSTPlugin } from "../types.ts"
@@ -15,15 +15,7 @@ suite("launcher [HTTP] with decorators and done callback", () => {
     // ---------------------------------------------------------------------------
     // Minimal test logger (no real I/O)
     // ---------------------------------------------------------------------------
-    const noop = (): void => {}
-    const testLogger = {
-        category: ["test"],
-        info: noop,
-        error: noop,
-        warn: noop,
-        debug: noop,
-        getChild: () => testLogger,
-    } as unknown as Logger
+    const testLogger = getDummyLogger()
 
     // ---------------------------------------------------------------------------
     // Minimal plugins and routes (no EJS/static required)

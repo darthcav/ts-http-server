@@ -108,8 +108,16 @@ repository.
   pushes to `dev` and pull requests. Uses `.env.example` copied to `.env.local`.
 - **`.github/workflows/gh-pages.yml`** — Builds TypeDoc and deploys `public/` to GitHub Pages from
   `main` branch.
-- **`.github/workflows/publish.yml`** — Manual trigger for npm publishing; expects clean build.
-- **`.github/workflows/docker-publish.yml`** — Manual trigger for Docker image to GHCR.
+- **`.github/workflows/publish.yml`** — Publishes the package to npm with
+  `npm publish --provenance --access public`. Triggered automatically by pushing a `v*` tag, not
+  manually.
+- **`.github/workflows/docker-publish.yml`** — Builds and pushes the Docker image to GHCR. Triggered
+  automatically by pushing a `v*` tag, not manually. `docker/metadata-action` derives the image tags
+  `{{version}}`, `{{major}}.{{minor}}` and `{{major}}` from the git tag, and Docker's `latest` moves
+  with every run. **Push `v*` tags in ascending version order**: pushing an older tag after a newer
+  one re-runs both workflows for the older release, repointing `latest`, `0.9` and `0` at the older
+  image (npm refuses the older version outright, so only GHCR is affected). Recover by re-running
+  the newer tag's workflow run, which re-pushes the moving tags.
 - **`.github/workflows/sync-dev.yml`** — Runs on every push to `main`: opens (and immediately
   merges) a `main` → `dev` PR so `dev` doesn't drift behind. It merges right away rather than
   relying on `--auto`/auto-merge, since `dev` has no branch-protection rules for that feature to

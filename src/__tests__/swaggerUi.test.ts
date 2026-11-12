@@ -1,7 +1,7 @@
 import { equal, match, ok } from "node:assert/strict"
 import { after, before, suite, test } from "node:test"
 import { setTimeout } from "node:timers/promises"
-import type { Logger } from "@logtape/logtape"
+import { getDummyLogger } from "@darthcav/ts-utils"
 import type { FastifyInstance } from "fastify"
 import defaultPlugins from "../defaults/defaultPlugins.ts"
 import defaultRoutes from "../defaults/defaultRoutes.ts"
@@ -17,15 +17,7 @@ import launcher from "../launcher.ts"
 // ---------------------------------------------------------------------------
 
 suite("Swagger UI [HTTP]", () => {
-    const noop = (): void => {}
-    const testLogger = {
-        category: ["test"],
-        info: noop,
-        error: noop,
-        warn: noop,
-        debug: noop,
-        getChild: () => testLogger,
-    } as unknown as Logger
+    const testLogger = getDummyLogger()
 
     const locals = {
         pkg: { name: "ts-http-server", version: "0.0.0", description: "Test" },

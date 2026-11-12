@@ -7,6 +7,11 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.9.4] - 2026-11-12
+
+Maintenance release: migration to the `@darthcav/ts-utils` `MainOptions`-based `main` API, a Biome
+YAML formatting fix, and dependency updates; no changes to the public API.
+
 ### Changed
 
 - `src/start.ts`: migrated to the `@darthcav/ts-utils` 0.11.0 `main` API, which replaced the
@@ -39,6 +44,7 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   automatically by pushing a `v*` tag, not manually as previously documented. Also documented that
   `v*` tags must be pushed in ascending version order, since `docker/metadata-action`'s moving tags
   (`latest`, `{{major}}.{{minor}}`, `{{major}}`) are repointed by whichever run finishes last
+- `README.md`: version badge updated to 0.9.4
 
 ### Dependencies
 

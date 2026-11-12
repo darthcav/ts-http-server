@@ -19,6 +19,13 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   `error` level, matching ts-utils 0.11.0
 - `README.md`: the usage example follows the new `main(name, logger, options)` signature
 
+### Fixed
+
+- `biome.json`: Biome 2.6.7 now formats YAML, and the global 4-space indentation and bracket spacing
+  made `npm run lint` fail on the OpenAPI specs in `src/openapi/`. YAML is now formatted with
+  2-space indentation and no bracket spacing, and `src/openapi/schemas/Error.yaml` is normalized to
+  `[message]`
+
 ### Tests
 
 - The hand-rolled no-op loggers (cast with `as unknown as Logger`) in `csp`,
@@ -35,15 +42,25 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Dependencies
 
-- `@darthcav/ts-utils` 0.10.10 → 0.11.0
-- `@fastify/accepts` 5.0.4 → 5.0.6
-- `@fastify/static` 10.1.3 → 10.1.5
-- `@fastify/swagger` 9.9.0 → 9.9.1
-- `@logtape/fastify` 2.3.2 → 2.3.10
-- `@logtape/logtape` 2.3.8 → 2.3.10
+- `@darthcav/ts-utils` 0.10.10 → 0.12.3
+- `@fastify/accepts` 5.0.4 → 5.0.7
+- `@fastify/compress` 9.2.0 → 9.3.0
+- `@fastify/cors` 11.3.0 → 11.4.1
+- `@fastify/etag` 6.2.0 → 6.2.2
+- `@fastify/helmet` 13.1.1 → 13.2.0
+- `@fastify/static` 10.1.3 → 10.1.10
+- `@fastify/swagger` 9.8.1 → 9.9.3
+- `@fastify/swagger-ui` 6.1.1 → 6.1.3
+- `@fastify/view` 12.0.0 → 12.0.1
+- `@logtape/fastify` 2.3.2 → 2.4.2
+- `@logtape/logtape` 2.3.2 → 2.4.2
+- `ejs` 6.0.1 → 7.0.2
+- `fastify` 5.12.1 → 5.12.8
+- `jose` 6.2.10 → 6.2.17
 - `yaml` 2.9.0 → 2.9.1
-- `@biomejs/biome` 2.5.14 → 2.5.15
-- `@types/node` 26.6.3 → 26.6.4
+- `@biomejs/biome` 2.5.11 → 2.6.7
+- `@types/node` 26.4.0 → 26.6.6
+- `prettier` 3.9.6 → 3.10.1
 
 ## [0.9.3] - 2026-09-01
 
